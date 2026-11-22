@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { getSignInOptions } from "@/server/auth/providers";
 
 import { SiteHeader } from "./SiteHeader";
-import { initials } from "./UserMenu";
+import { initials } from "./Avatar";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/auth/providers", () => ({ getSignInOptions: vi.fn() }));

@@ -1,6 +1,6 @@
 # LaughterMaster: Build Plan
 
-> Built from [SPEC.md](SPEC.md) v1.5. Each milestone is a small vertical slice.
+> Built from [SPEC.md](SPEC.md) v1.6. Each milestone is a small vertical slice.
 > **Every milestone ends with:** `npm run check` green → spec review (`review-against-spec` skill) → commit → tick the boxes here.
 > The "Course practice" line notes which SDLC skill each milestone exercises.
 
@@ -11,7 +11,7 @@
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
-| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4 posting done) |
+| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4 posting, US-6 joke page done) |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
@@ -64,12 +64,12 @@
 - [x] `Joke` table + status field; jokes are auto-approved for now (moderation is added in M5, still local-only)
 - [x] Post form: 10–500 characters after trimming, counted as Unicode graphemes (any language), with validation errors
 - [x] Limit: 10 posts per member per 24h, with a "try again at …" message
-- [ ] `/joke/[id]` page; 404 page for unknown, deleted, or hidden jokes
+- [x] `/joke/[id]` page; "isn't available" page (noindex, D16) for unknown, deleted, hidden or unapproved jokes
 - [ ] Author can delete their own joke with a confirmation step
 - [ ] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
 - [ ] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
 - [ ] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position
-- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; 404 for unknown members
+- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; "isn't available" page (noindex, D16) for unknown members
 - [ ] Owner's view of their own profile shows their pending jokes marked "Under review"
 - [ ] Author names everywhere link to their profile
 - [ ] Test: profile and list responses never include an email or vote counts

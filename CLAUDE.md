@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes, catches duplicates and posts a daily AI joke.
 
-Milestones M1 (scaffold, CI) and M2 (sign-in) are done; M3 is in progress, with posting a joke (`/post`) built. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
+Milestones M1 (scaffold, CI) and M2 (sign-in) are done; M3 is in progress, with posting a joke (`/post`) and the joke page (`/joke/[id]`) built. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
 
 ## Sources of truth
 
@@ -36,6 +36,7 @@ Node 22+. Copy `.env.example` to `.env.local` for local secrets.
 - **Auth** (`src/auth.ts`, `src/server/auth/`): Auth.js v5 beta with JWT sessions. Google is registered only when `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` are set; until M9 local development uses the dev-only "Sign in as" test users (`dev-mina`, `dev-priya`, `dev-admin`), which exist only when `NODE_ENV=development` and Google isn't configured. `next dev` needs `AUTH_SECRET` in `.env.local`. Sign-in failures redirect back to the starting page with `?signin=failed`; `/auth/error` is a redirect route, not a page. Only `src/server/auth/safe-redirect.ts` is safe to import from client code.
 - `next.config.ts` enables `cacheComponents` (Next 16). Consequences learned the hard way:
   - A Server Component that calls `auth()` must `await connection()` first and sit inside `<Suspense>` (the header does); otherwise prerendering fails and the page never hydrates. Component tests stub `connection` in `vitest.setup.ts`.
+  - A page always streams with status 200, so `notFound()` gives the not-found UI plus `noindex`, never an HTTP 404 (SPEC D16). Read data inside `<Suspense>` after `connection()`; `new Date()` in a server component also needs `connection()` first.
   - `@electric-sql/pglite` is in `serverExternalPackages`; bundling it breaks its file loading.
 - Client effects must survive React StrictMode's double run in dev (e.g. a `<dialog>` cleanup must not call `close()`).
 - Only one `next dev` can run per project folder.

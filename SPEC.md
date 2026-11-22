@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.5** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.6** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -71,7 +71,7 @@ As a member, I want to delete my own joke, so that I can remove something I regr
 **US-6 · Joke page · M**
 As anyone, I want each joke to have its own page, so that it can be linked and shared.
 - `/joke/<id>` shows the joke, the author's display name and avatar, its category, a relative post time ("3h ago"), the vote buttons, and the share controls.
-- A deleted, hidden, or unknown joke shows a friendly "This joke isn't available" page with HTTP status 404.
+- A deleted, hidden, or unknown joke shows a friendly "This joke isn't available" page that search engines are told not to index (`noindex`). _(D16)_
 
 **US-7 · All jokes page · M** _(intent #13)_
 As anyone, I want to browse every joke ever posted, so that I can find more than today's top 10 and fresh jokes get votes.
@@ -94,7 +94,7 @@ As anyone, I want to see a member's profile with all their jokes, so that I can 
 - It lists **all of the member's approved jokes**, newest first, loaded lazily with the same rules as US-7 (batches of 20, Load more fallback, end message).
 - The author name on every joke (home, all jokes, joke page) links to the author's profile.
 - Given a member has no approved jokes, the profile says "<name> hasn't posted any jokes yet."
-- Given the member doesn't exist or is banned, then I see "This profile isn't available" with HTTP status 404.
+- Given the member doesn't exist or is banned, then I see "This profile isn't available", marked `noindex`. _(D16)_
 - **Viewing my own profile:** I see the same public list, plus an "Edit name" link (US-3) and a link to `/me` for my private stats (US-9). My pending jokes appear only to me, marked "Under review". _(confirmed, see §9)_
 - The profile never shows email, vote counts, or what the member has voted on. _(confirmed, see §9)_
 - JokeBot has a profile too, listing all of its daily AI jokes.
@@ -225,9 +225,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D13 | What a profile shows | Name, avatar, join month, joke count, approved jokes. Never email, votes cast, or vote counts. The owner also sees their own pending jokes. | Confirmed |
 | D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | Confirmed |
 | D15 | When the Google OAuth client is created | Deferred to M9. Until then, development uses a dev-only test sign-in and tests mock OAuth. The real Google flow is first exercised in M9. | Author |
+| D16 | Status of "isn't available" pages | Unavailable joke and profile pages show the friendly message with a `noindex` tag but keep HTTP status 200. With Next.js Cache Components the page shell (and its 200 status) is sent before the database lookup; a real 404 would need a per-request Proxy lookup, which isn't worth it. People see no difference. `/admin` (served by its own check) is unaffected. | Author |
 
 ## Changelog
 
+- **1.6** (2026-11-22): Added D16: unavailable joke and profile pages use `noindex` with status 200 instead of HTTP 404 (US-6, US-18). Affects M3.
 - **1.5** (2026-11-22): Added D15: the Google OAuth client is created in M9; development uses a dev-only test sign-in, never in production (note on US-1). Affects M2 and M9.
 - **1.4** (2026-11-22): Author reviewed all PO decisions. Confirmed D1, D2, D4–D6, D9–D14. Changed D3 (report threshold 3 → 5), D7 (any language instead of English only) and D8 (post limit 5 → 10 per 24h). Moderation, categorizing and duplicate checks now must handle any language. Affects milestones M3, M5 and M6.
 - **1.3** (2026-11-22): Google is the only sign-in method (intent #2, author decision). US-1 drops GitHub and adds a sign-in failure criterion; US-2 states that reading never needs a login, keeps action buttons visible to visitors, and defines the sign-in dialog. Affects milestone M2.
