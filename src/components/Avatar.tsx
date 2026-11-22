@@ -38,8 +38,9 @@ export function Avatar({
   return (
     <span
       aria-hidden="true"
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#FFD23F] text-sm font-bold text-[#15161A]"
-      style={style}
+      className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#FFD23F] font-bold text-[#15161A]"
+      // Initials scale with the circle: 13px at 36px, 34px on the profile.
+      style={{ ...style, fontSize: Math.max(11, Math.round(size * 0.36)) }}
     >
       {initials(user.name)}
     </span>

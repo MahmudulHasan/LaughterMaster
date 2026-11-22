@@ -13,6 +13,7 @@ import {
 import type { JokeListItem, JokeListPage } from "@/lib/joke-list-item";
 
 import { primaryButton, secondaryButton } from "./buttonStyles";
+import { DeleteJokeButton } from "./DeleteJokeButton";
 import { JokeCard } from "./JokeCard";
 
 export type LazyJokeListProps = {
@@ -26,6 +27,8 @@ export type LazyJokeListProps = {
   author?: string;
   /** Shown instead of the list when there are no jokes at all. */
   emptyState: ReactNode;
+  /** The viewer owns every joke shown (their own profile): offer Delete. */
+  canDelete?: boolean;
 };
 
 type Status = "idle" | "loading" | "error";
@@ -100,6 +103,7 @@ export function LazyJokeList({
   now,
   author,
   emptyState,
+  canDelete = false,
 }: LazyJokeListProps) {
   const [jokes, setJokes] = useState(initialPage.jokes);
   const [cursor, setCursor] = useState(initialPage.nextCursor);
@@ -204,7 +208,20 @@ export function LazyJokeList({
       <ul aria-label="Jokes" className="flex flex-col gap-3">
         {jokes.map((joke) => (
           <li key={joke.id}>
-            <JokeCard joke={joke} now={nowDate} />
+            <JokeCard
+              joke={joke}
+              now={nowDate}
+              actions={
+                canDelete ? (
+                  <DeleteJokeButton
+                    jokeId={joke.id}
+                    onDeleted={(id) =>
+                      setJokes((shown) => shown.filter((j) => j.id !== id))
+                    }
+                  />
+                ) : null
+              }
+            />
           </li>
         ))}
       </ul>

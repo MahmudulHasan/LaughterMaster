@@ -18,10 +18,12 @@ const dangerButton =
 function ConfirmDeleteDialog({
   jokeId,
   redirectTo,
+  onDeleted,
   onClose,
 }: {
   jokeId: string;
   redirectTo?: string;
+  onDeleted?: (jokeId: string) => void;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -44,8 +46,14 @@ function ConfirmDeleteDialog({
         setError(result.message);
         return;
       }
-      if (redirectTo) router.replace(redirectTo);
-      else router.refresh();
+      if (redirectTo) {
+        router.replace(redirectTo);
+        return;
+      }
+      // Client-held lists drop the joke themselves; the refresh updates
+      // server-rendered parts such as the profile's joke count.
+      onDeleted?.(jokeId);
+      router.refresh();
     });
   }
 
@@ -97,14 +105,17 @@ function ConfirmDeleteDialog({
  * The author's Delete control with a confirmation step (US-5). Render it
  * only for the joke's author; the server checks ownership again.
  * With `redirectTo` it navigates away after deleting (the joke page);
- * without, it refreshes in place (lists such as the profile).
+ * without, it refreshes in place, and `onDeleted` lets a client-side list
+ * (LazyJokeList) remove the joke it is holding.
  */
 export function DeleteJokeButton({
   jokeId,
   redirectTo,
+  onDeleted,
 }: {
   jokeId: string;
   redirectTo?: string;
+  onDeleted?: (jokeId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -138,6 +149,7 @@ export function DeleteJokeButton({
         <ConfirmDeleteDialog
           jokeId={jokeId}
           redirectTo={redirectTo}
+          onDeleted={onDeleted}
           onClose={() => {
             setOpen(false);
             buttonRef.current?.focus();

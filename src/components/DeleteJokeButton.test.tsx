@@ -68,6 +68,20 @@ describe("DeleteJokeButton", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
+  it("tells the list to drop the joke when given onDeleted", async () => {
+    mockAction.mockResolvedValue({ ok: true });
+    const onDeleted = vi.fn();
+    const user = userEvent.setup();
+    render(<DeleteJokeButton jokeId="j1" onDeleted={onDeleted} />);
+
+    await user.click(screen.getByRole("button", { name: "Delete this joke" }));
+    await user.click(screen.getByRole("button", { name: "Delete joke" }));
+
+    expect(onDeleted).toHaveBeenCalledWith("j1");
+    expect(refresh).toHaveBeenCalled(); // updates server parts such as counts
+    expect(replace).not.toHaveBeenCalled();
+  });
+
   it("shows the error and keeps the dialog open when deleting fails", async () => {
     mockAction.mockResolvedValue({
       ok: false,

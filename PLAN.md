@@ -11,7 +11,7 @@
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
-| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4, US-5, US-6 and the `/jokes` list done; profiles next) |
+| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4, US-5, US-6, US-7, US-18 built; author links and the no-email/no-counts test left) |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
@@ -69,9 +69,9 @@
 - [x] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
 - [x] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
 - [x] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position
-- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; "isn't available" page (noindex, D16) for unknown members
-- [ ] Owner's view of their own profile shows their pending jokes marked "Under review"
-- [ ] Author names everywhere link to their profile
+- [x] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; "isn't available" page (noindex, D16) for unknown members
+- [x] Owner's view of their own profile shows their pending jokes marked "Under review"
+- [x] Author names everywhere link to their profile (joke page, list cards, profile; the M4 home top 10 reuses `JokeCard`)
 - [ ] Test: profile and list responses never include an email or vote counts
 
 **Exit:** US-4 through US-7 and US-18 pass (excluding the moderation and ban parts, which land in M5 and M6).

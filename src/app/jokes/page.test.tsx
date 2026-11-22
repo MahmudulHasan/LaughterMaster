@@ -6,6 +6,10 @@ import { listPublicJokes } from "@/server/jokes/list";
 import { AllJokesList } from "./page";
 
 vi.mock("@/server/db/app-db", () => ({ getAppDb: vi.fn() }));
+vi.mock("@/app/joke/actions", () => ({ deleteJokeAction: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}));
 vi.mock("@/server/jokes/list", () => ({ listPublicJokes: vi.fn() }));
 const mockList = listPublicJokes as unknown as ReturnType<typeof vi.fn>;
 

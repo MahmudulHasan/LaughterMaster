@@ -4,7 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { JokeListItem, JokeListPage } from "@/lib/joke-list-item";
 
+import { deleteJokeAction } from "@/app/joke/actions";
+
 import { LazyJokeList } from "./LazyJokeList";
+
+vi.mock("@/app/joke/actions", () => ({ deleteJokeAction: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}));
+const mockDelete = deleteJokeAction as unknown as ReturnType<typeof vi.fn>;
 
 const NOW = "2026-11-22T12:00:00.000Z";
 
@@ -54,7 +62,10 @@ function respond(page: JokeListPage) {
   );
 }
 
-function renderList(page: JokeListPage, props: { author?: string } = {}) {
+function renderList(
+  page: JokeListPage,
+  props: { author?: string; canDelete?: boolean } = {},
+) {
   return render(
     <LazyJokeList
       listKey="test"
@@ -202,6 +213,27 @@ describe("LazyJokeList", () => {
     expect(
       screen.queryByRole("button", { name: "Load more jokes" }),
     ).toBeNull();
+  });
+
+  it("offers no Delete buttons unless asked to", () => {
+    renderList({ jokes: range(1, 3), nextCursor: null });
+    expect(
+      screen.queryByRole("button", { name: "Delete this joke" }),
+    ).toBeNull();
+  });
+
+  it("removes a joke from the list once its owner deletes it", async () => {
+    mockDelete.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    renderList({ jokes: range(1, 4), nextCursor: null }, { canDelete: true });
+
+    const second = within(items()[1]!);
+    await user.click(second.getByRole("button", { name: "Delete this joke" }));
+    await user.click(screen.getByRole("button", { name: "Delete joke" }));
+
+    expect(mockDelete).toHaveBeenCalledWith("j2");
+    expect(screen.queryByText("Joke number 2 is funny")).toBeNull();
+    expect(items()).toHaveLength(2);
   });
 
   it("never shows the same joke twice", async () => {

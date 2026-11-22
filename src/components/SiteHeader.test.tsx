@@ -125,6 +125,9 @@ describe("SiteHeader", () => {
       expect(
         within(banner).getByRole("link", { name: "Post a joke" }),
       ).toHaveAttribute("href", "/post");
+      expect(
+        within(banner).getByRole("link", { name: "Your profile: Mina Park" }),
+      ).toHaveAttribute("href", "/u/u1");
       const signOut = within(banner).getByRole("button", { name: "Sign out" });
       expect(
         signOut.closest("form")!.querySelector('input[name="redirectTo"]'),
