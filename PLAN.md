@@ -72,7 +72,7 @@
 - [x] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; "isn't available" page (noindex, D16) for unknown members
 - [x] Owner's view of their own profile shows their pending jokes marked "Under review"
 - [x] Author names everywhere link to their profile (joke page, list cards, profile; the M4 home top 10 reuses `JokeCard`)
-- [ ] Test: profile and list responses never include an email or vote counts
+- [x] Test: profile and list responses never include an email or vote counts (`src/app/privacy.test.ts`; proven by planting leaks)
 
 **Exit:** US-4 through US-7 and US-18 pass (excluding the moderation and ban parts, which land in M5 and M6).
 
