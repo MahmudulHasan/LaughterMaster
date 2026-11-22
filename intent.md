@@ -8,6 +8,8 @@
 A platform where people can post jokes. The home page shows the **top 10 jokes of the day**.
 People can **like** jokes they enjoy and **dislike** jokes they don't. People can **share** jokes on social media.
 
+_Added later:_ Each person has a **profile** where all of their jokes are shown. **All the posted jokes from everyone** are shown, with pagination, on another page.
+
 ## Why
 
 - **Primary goal:** finish the AI-native SDLC playbook course by taking one real project through every stage: intent, spec, plan, build, test, review, ship.
@@ -28,6 +30,8 @@ People can **like** jokes they enjoy and **dislike** jokes they don't. People ca
 | 9 | Cold start | If fewer than 10 jokes were posted in the last 24h, **fill the rest with the top jokes of the last 7 days**, clearly labeled. |
 | 10 | vs old spec | This **replaces** the old LaughterMaster spec. The random-joke browser and the Claude joke generator are dropped. |
 | 11 | Deployment | **Local first, deploy later:** build and test locally, then deploy to Vercel + a hosted database (e.g. Postgres) in the final milestone. |
+| 12 | Profiles | Every member has a **public profile page** that lists **all of their jokes**. |
+| 13 | All jokes page | A separate page lists **every posted joke from everyone**, with **pagination**. |
 
 ## Open questions (for the spec stage)
 
