@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes, catches duplicates and posts a daily AI joke.
 
-The app is scaffolded (milestone M1): a placeholder home page, test setup, database wiring and CI, but no features yet. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
+Milestones M1 (scaffold, CI) and M2 (sign-in) are done; M3 is in progress, with posting a joke (`/post`) built. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
 
 ## Sources of truth
 

@@ -15,6 +15,13 @@
       "when": 1795325636499,
       "tag": "0001_users",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795327123053,
+      "tag": "0002_jokes",
+      "breakpoints": true
     }
   ]
 }
