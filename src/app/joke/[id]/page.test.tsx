@@ -2,18 +2,26 @@ import { render, screen } from "@testing-library/react";
 import { notFound } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { auth } from "@/auth";
 import { getPublicJoke, type PublicJoke } from "@/server/jokes/read";
 
 import JokeNotFound from "./not-found";
 import { JokeBody } from "./page";
 
+vi.mock("@/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/app/joke/actions", () => ({ deleteJokeAction: vi.fn() }));
 vi.mock("@/server/db/app-db", () => ({ getAppDb: vi.fn() }));
 vi.mock("@/server/jokes/read", () => ({ getPublicJoke: vi.fn() }));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
 }));
+
+const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
+const signedInAs = (id: string) =>
+  mockAuth.mockResolvedValue({ user: { id, name: id, image: null } });
 
 const mockGet = getPublicJoke as unknown as ReturnType<typeof vi.fn>;
 const params = (id: string) => Promise.resolve({ id });
@@ -30,6 +38,8 @@ const joke: PublicJoke = {
 describe("/joke/[id]", () => {
   beforeEach(() => {
     mockGet.mockReset();
+    mockAuth.mockReset();
+    mockAuth.mockResolvedValue(null);
   });
 
   it("shows the joke, category, author linked to their profile, and post time", async () => {
@@ -47,6 +57,27 @@ describe("/joke/[id]", () => {
       "dateTime",
       joke.createdAt.toISOString(),
     );
+  });
+
+  it("shows Delete only to the joke's author", async () => {
+    mockGet.mockResolvedValue(joke);
+    signedInAs("dev-priya");
+    render(await JokeBody({ params: params("j1") }));
+    expect(
+      screen.getByRole("button", { name: "Delete this joke" }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["a visitor", null],
+    ["another member", "dev-mina"],
+  ])("hides Delete from %s", async (_who, userId) => {
+    mockGet.mockResolvedValue(joke);
+    if (userId) signedInAs(userId);
+    render(await JokeBody({ params: params("j1") }));
+    expect(
+      screen.queryByRole("button", { name: "Delete this joke" }),
+    ).toBeNull();
   });
 
   it("omits the category chip until moderation sets one", async () => {

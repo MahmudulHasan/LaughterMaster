@@ -11,7 +11,7 @@
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
-| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4 posting, US-6 joke page done) |
+| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4 posting, US-6 joke page, US-5 delete done) |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
@@ -65,7 +65,7 @@
 - [x] Post form: 10–500 characters after trimming, counted as Unicode graphemes (any language), with validation errors
 - [x] Limit: 10 posts per member per 24h, with a "try again at …" message
 - [x] `/joke/[id]` page; "isn't available" page (noindex, D16) for unknown, deleted, hidden or unapproved jokes
-- [ ] Author can delete their own joke with a confirmation step
+- [x] Author can delete their own joke with a confirmation step (joke page now; the profile list reuses `DeleteJokeButton`)
 - [ ] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
 - [ ] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
 - [ ] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position

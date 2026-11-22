@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { SignInOptions } from "@/server/auth/types";
 
@@ -17,19 +17,6 @@ vi.mock("@/server/auth/actions", () => ({
 vi.mock("next/navigation", () => ({
   usePathname: () => "/jokes",
 }));
-
-// jsdom has no modal support: emulate showModal()/close() well enough that
-// close() fires the "close" event, as browsers do for Escape and Not now.
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function showModal() {
-    this.setAttribute("open", "");
-  };
-  HTMLDialogElement.prototype.close = function close() {
-    if (!this.hasAttribute("open")) return;
-    this.removeAttribute("open");
-    this.dispatchEvent(new Event("close"));
-  };
-});
 
 const googleOnly: SignInOptions = { google: true, devUsers: [] };
 const devOnly: SignInOptions = {

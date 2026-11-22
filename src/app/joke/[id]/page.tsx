@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
+import { auth } from "@/auth";
+import { DeleteJokeButton } from "@/components/DeleteJokeButton";
 import { JokeView } from "@/components/JokeView";
 import { getAppDb } from "@/server/db/app-db";
 import { getPublicJoke } from "@/server/jokes/read";
@@ -33,7 +35,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export async function JokeBody({ params }: Props) {
   const joke = await loadJoke(params);
   if (!joke) notFound();
-  return <JokeView joke={joke} now={new Date()} />;
+  const session = await auth();
+  const isAuthor = session?.user?.id === joke.author.id;
+  return (
+    <JokeView
+      joke={joke}
+      now={new Date()}
+      actions={
+        isAuthor ? <DeleteJokeButton jokeId={joke.id} redirectTo="/" /> : null
+      }
+    />
+  );
 }
 
 export default function JokePage({ params }: Props) {

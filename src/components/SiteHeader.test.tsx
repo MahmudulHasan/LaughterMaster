@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import { getSignInOptions } from "@/server/auth/providers";
@@ -23,17 +23,6 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(search.value),
   useRouter: () => ({ replace }),
 }));
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function showModal() {
-    this.setAttribute("open", "");
-  };
-  HTMLDialogElement.prototype.close = function close() {
-    if (!this.hasAttribute("open")) return;
-    this.removeAttribute("open");
-    this.dispatchEvent(new Event("close"));
-  };
-});
 
 // `auth` is overloaded (it is also middleware); the tests only use the
 // zero-argument form, so a loose mock type is enough.

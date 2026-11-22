@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { formatRelativeTime } from "@/lib/relative-time";
 import type { PublicJoke } from "@/server/jokes/read";
@@ -7,9 +8,18 @@ import { Avatar } from "./Avatar";
 
 /**
  * The joke page's main card (US-6): category, text, author (linked to their
- * profile) and relative post time. Vote buttons arrive in M4, share in M7.
+ * profile) and relative post time. `actions` fills the bottom row: the
+ * author's Delete now, vote buttons in M4 and share in M7.
  */
-export function JokeView({ joke, now }: { joke: PublicJoke; now: Date }) {
+export function JokeView({
+  joke,
+  now,
+  actions,
+}: {
+  joke: PublicJoke;
+  now: Date;
+  actions?: ReactNode;
+}) {
   return (
     <article className="flex flex-col gap-7 rounded-3xl border border-black/10 bg-white p-6 sm:p-10">
       {joke.category && (
@@ -40,6 +50,11 @@ export function JokeView({ joke, now }: { joke: PublicJoke; now: Date }) {
           </span>
         </span>
       </Link>
+      {actions && (
+        <div className="flex flex-wrap items-center gap-2.5 border-t border-black/10 pt-5">
+          {actions}
+        </div>
+      )}
     </article>
   );
 }
