@@ -2,7 +2,10 @@ import Link from "next/link";
 
 import { primaryButton } from "@/components/buttonStyles";
 
-/** Shown with HTTP 404 for unknown, deleted, hidden or unapproved jokes (US-6). */
+/**
+ * Shown for unknown, deleted, hidden or unapproved jokes (US-6), with a
+ * noindex tag; the status stays 200 under Cache Components (SPEC D16).
+ */
 export default function JokeNotFound() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-start gap-4 px-4 py-16">

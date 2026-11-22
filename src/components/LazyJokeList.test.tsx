@@ -244,4 +244,51 @@ describe("LazyJokeList", () => {
     await screen.findByText("Joke number 22 is funny");
     expect(screen.getAllByText("Joke number 20 is funny")).toHaveLength(1);
   });
+
+  describe("Back navigation", () => {
+    const saved = (y: number) =>
+      sessionStorage.setItem(
+        "lazy-jokes:test",
+        JSON.stringify({ jokes: range(1, 41), nextCursor: "j40", y }),
+      );
+
+    it("restores loaded batches and scroll when arriving via Back", async () => {
+      const scrollTo = vi.fn();
+      vi.stubGlobal("scrollTo", scrollTo);
+      saved(3695);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+
+      renderList({ jokes: range(1, 21), nextCursor: "j20" });
+
+      expect(items()).toHaveLength(40);
+      expect(scrollTo).toHaveBeenCalledWith(0, 3695);
+      // Paging continues from the restored cursor, not the first one.
+      respond({ jokes: [], nextCursor: null });
+      await act(async () => intersect());
+      expect(fetchMock).toHaveBeenCalledWith("/api/jokes?cursor=j40", {
+        cache: "no-store",
+      });
+    });
+
+    it("starts fresh on a normal visit, even with saved state", () => {
+      // Well past the popstate window used above.
+      vi.spyOn(Date, "now").mockReturnValue(Date.parse("2100-01-01"));
+      saved(3695);
+      renderList({ jokes: range(1, 21), nextCursor: "j20" });
+      expect(items()).toHaveLength(20);
+      vi.restoreAllMocks();
+    });
+
+    it("saves what is shown so Back can restore it", async () => {
+      respond({ jokes: range(21, 41), nextCursor: "j40" });
+      const user = userEvent.setup();
+      renderList({ jokes: range(1, 21), nextCursor: "j20" });
+      await user.click(screen.getByRole("button", { name: "Load more jokes" }));
+      await screen.findByText("Joke number 40 is funny");
+
+      const stored = JSON.parse(sessionStorage.getItem("lazy-jokes:test")!);
+      expect(stored.jokes).toHaveLength(40);
+      expect(stored.nextCursor).toBe("j40");
+    });
+  });
 });

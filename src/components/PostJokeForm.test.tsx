@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -117,5 +118,16 @@ describe("PostJokeForm", () => {
     render(<PostJokeForm remaining={0} retryAt={retryAt} />);
     expect(screen.getByRole("alert")).toHaveTextContent("You can post again");
     expect(submit()).toBeDisabled();
+  });
+
+  it("leaves the time-zone-dependent retry time out of the server render", () => {
+    // The server's time zone isn't the viewer's: printing a clock time there
+    // would differ from the browser's and break hydration.
+    const retryAt = "2026-11-23T03:42:00.000Z";
+    const html = renderToString(
+      <PostJokeForm remaining={0} retryAt={retryAt} />,
+    );
+    expect(html).toContain("within 24 hours");
+    expect(html).toContain(`dateTime="${retryAt}"`);
   });
 });

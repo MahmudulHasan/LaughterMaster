@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 
 import { postJokeAction, type PostJokeState } from "@/app/post/actions";
 import {
@@ -23,6 +23,20 @@ export type PostJokeFormProps = {
 };
 
 /** "at 3:42 PM", or "tomorrow at 3:42 PM", in the viewer's time zone. */
+const noSubscribe = () => () => {};
+/**
+ * False during the server render and hydration, true afterwards. The retry
+ * time depends on the viewer's time zone, which the server can't know, so
+ * it is only printed once the browser has taken over.
+ */
+function useIsHydrated(): boolean {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 function formatRetryAt(iso: string): string {
   const when = new Date(iso);
   const time = when.toLocaleTimeString(undefined, {
@@ -39,6 +53,7 @@ function formatRetryAt(iso: string): string {
  * quick feedback; the server action checks everything again.
  */
 export function PostJokeForm({ remaining, retryAt }: PostJokeFormProps) {
+  const hydrated = useIsHydrated();
   const [text, setText] = useState("");
   const initialState: PostJokeState = retryAt
     ? { status: "rate_limited", retryAt }
@@ -154,7 +169,11 @@ export function PostJokeForm({ remaining, retryAt }: PostJokeFormProps) {
           <p className="font-bold">That’s today’s limit</p>
           <p className="text-sm text-black/75">
             You&apos;ve posted {POSTS_PER_DAY} jokes in the last 24 hours. You
-            can post again {formatRetryAt(state.retryAt)}.
+            can post again{" "}
+            <time dateTime={state.retryAt}>
+              {hydrated ? formatRetryAt(state.retryAt) : "within 24 hours"}
+            </time>
+            .
           </p>
         </div>
       )}

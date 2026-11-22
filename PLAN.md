@@ -11,7 +11,7 @@
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
-| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | In progress (US-4, US-5, US-6, US-7, US-18 built; author links and the no-email/no-counts test left) |
+| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Done (moderation, votes, share and bans are later milestones) |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
@@ -75,6 +75,8 @@
 - [x] Test: profile and list responses never include an email or vote counts (`src/app/privacy.test.ts`; proven by planting leaks)
 
 **Exit:** US-4 through US-7 and US-18 pass (excluding the moderation and ban parts, which land in M5 and M6).
+
+**Review (spec check, 2026-11-22):** every M3 criterion is covered by tests except those deferred to M4–M7. Fixed from the review: the /post retry time is no longer printed during the server render (time-zone hydration mismatch), restore-on-Back now has tests, and stale "404" comments are updated for D16. Accepted as is: the `noindex` tag on unavailable pages comes from Next.js itself (checked by hand, not tested); /post's guidelines mention duplicate blocking (M5) and the top 10 (M4) ahead of those milestones; and the owner of a profile with only pending jokes sees "<name> hasn't posted any jokes yet." under them.
 
 ## M4: Voting & top 10 (US-8, US-9, US-10)
 **Course practice:** specifying and testing tricky business logic.

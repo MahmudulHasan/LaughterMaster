@@ -17,7 +17,7 @@ export type PublicJoke = {
 /**
  * A joke anyone may see: approved, by a member who isn't banned. Everything
  * else (unknown, pending, rejected, hidden, removed, deleted) returns null,
- * which the joke page turns into a 404 (US-6).
+ * which the joke page turns into its "isn't available" page (US-6, D16).
  */
 export async function getPublicJoke(
   db: Db,
