@@ -1,19 +1,39 @@
-# dependencies
-node_modules/
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
 
-# build output
-.next/
-out/
-dist/
+# Build output
+/.next/
+/out/
+/build
+/dist
 
-# env and secrets
-.env
-.env*.local
+# Testing
+/coverage
 
-# local data
+# Env and secrets (the example file is committed)
+.env*
+!.env.example
+*.pem
+
+# Local data (PGlite database folder, other local DBs)
+.data/
 *.db
 *.sqlite
 
-# misc
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS
 .DS_Store
-coverage/

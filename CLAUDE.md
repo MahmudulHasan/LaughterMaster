@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes, catches duplicates and posts a daily AI joke.
 
-**No application code exists yet.** The repo holds planning docs only; scaffolding starts at milestone M1 in `PLAN.md`. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
+The app is scaffolded (milestone M1): a placeholder home page, test setup, database wiring and CI, but no features yet. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
 
 ## Sources of truth
 
@@ -21,9 +21,19 @@ Project skills in `.claude/skills/`: `product-owner` (spec changes), `plan-miles
 
 ## Commands
 
-Not scaffolded yet. M1 must replace this section with the real commands, including how to run a single test. Planned:
+Node 22+. Copy `.env.example` to `.env.local` for local secrets.
+
 - `npm run dev`: dev server
-- `npm run check`: lint + typecheck + tests (the gate for "done")
+- `npm run check`: lint + Prettier check + `tsc --noEmit` + all tests. This is the gate for "done", and CI runs it followed by `npm run build`.
+- `npm run test` runs all tests. A single file: `npx vitest run src/server/db/db.test.ts`. A single test by name: add `-t "name"`.
+- `npm run format`: Prettier write. Markdown and `.claude/` are deliberately not formatted.
+- `npm run db:generate`: create a migration in `drizzle/` after changing `src/server/db/schema.ts`.
+
+## How the scaffold fits together
+
+- **Tests** (`vitest.config.mts`): two projects chosen by file extension. `*.test.tsx` runs in jsdom with Testing Library (`vitest.setup.ts`); `*.test.ts` runs in node, which PGlite needs. Name a test file to match the environment it needs.
+- **Database** (`src/server/db/`): `createDb({ inMemory })` builds a Drizzle client on PGlite; app code uses the lazy shared `getDb()`, and callers depend on the `Db` type so the M9 switch to hosted Postgres only changes this factory. Local data lives in `PGLITE_DATA_DIR` (default `./.data/pglite`, gitignored). `runMigrations(db)` applies `drizzle/` from the repo root. Tests use an in-memory DB plus `runMigrations`.
+- `next.config.ts` enables `cacheComponents` (Next 16).
 
 ## Planned architecture (from SPEC.md §4–7)
 

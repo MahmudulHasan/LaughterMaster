@@ -8,8 +8,8 @@
 
 | Milestone | Stories | Status |
 |-----------|---------|--------|
-| M0 Foundations | – | In progress |
-| M1 Scaffold & CI | – | Not started |
+| M0 Foundations | – | Done |
+| M1 Scaffold & CI | – | In progress (waiting for first CI run) |
 | M2 Sign in | US-1, US-2 | Not started |
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Not started |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
@@ -31,18 +31,18 @@
 - [x] `PLAN.md` (this file)
 - [x] Project skills in `.claude/skills/` (product-owner, plan-milestones, implement-story, review-against-spec)
 - [x] Author confirms or overrules the PO decisions D1–D14 in SPEC.md §9 (D3, D7, D8 changed)
-- [ ] Commit and push
+- [x] Commit and push
 
 **Exit:** the spec is confirmed and every open question has an answer.
 
 ## M1: Scaffold & CI
 **Course practice:** environment setup, automated quality gates.
-- [ ] Next.js + TypeScript (strict) + Tailwind app runs with `npm run dev`
-- [ ] ESLint + Prettier; `npm run check` = lint + typecheck + test
-- [ ] Vitest + Testing Library configured with one sample test
-- [ ] Drizzle + PGlite wired up; first migration creates an empty schema
-- [ ] `.env.example` lists every required variable (no real values)
-- [ ] GitHub Actions runs `npm run check` on push and PR
+- [x] Next.js + TypeScript (strict) + Tailwind app (verified with `npm run build`)
+- [x] ESLint + Prettier; `npm run check` = lint + format check + typecheck + test
+- [x] Vitest + Testing Library configured with one sample test
+- [x] Drizzle + PGlite wired up; first migration creates an empty schema
+- [x] `.env.example` lists every required variable (no real values)
+- [ ] GitHub Actions runs `npm run check` on push and PR (workflow added; not yet run)
 
 **Exit:** CI is green on `main` with an empty app.
 
