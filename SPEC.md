@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.4** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.5** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -35,6 +35,7 @@ Priorities use MoSCoW: **M**ust, **S**hould, **C**ould. Acceptance criteria use 
 **US-1 · Sign in · M**
 As a visitor, I want to sign in with my Google account, so that I can like, dislike and post without creating a new password. _(intent #2)_
 - **Google is the only sign-in method.** There are no passwords and no other providers.
+- **Development only:** while running locally without a Google client configured, the sign-in dialog also offers "Sign in as" a few seeded test users. It is a development tool, not a sign-in method, and is never available in a production build. _(D15)_
 - Given I'm logged out, when I click "Sign in", then I see one "Continue with Google" button, and after approving with Google I return to the page I was on.
 - Given I cancel or Google returns an error, then I'm back on the page I was on, still logged out, with a short "Sign-in didn't finish. Try again." message.
 - Given I sign in for the first time, then a member profile is created with my Google display name and profile photo.
@@ -223,9 +224,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D12 | All jokes page and profile lists | Lazy loading (intent #13): newest first, batches of 20, auto-load plus Load more, cursor-based. Back restores the list and scroll position. | Confirmed |
 | D13 | What a profile shows | Name, avatar, join month, joke count, approved jokes. Never email, votes cast, or vote counts. The owner also sees their own pending jokes. | Confirmed |
 | D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | Confirmed |
+| D15 | When the Google OAuth client is created | Deferred to M9. Until then, development uses a dev-only test sign-in and tests mock OAuth. The real Google flow is first exercised in M9. | Author |
 
 ## Changelog
 
+- **1.5** (2026-11-22): Added D15: the Google OAuth client is created in M9; development uses a dev-only test sign-in, never in production (note on US-1). Affects M2 and M9.
 - **1.4** (2026-11-22): Author reviewed all PO decisions. Confirmed D1, D2, D4–D6, D9–D14. Changed D3 (report threshold 3 → 5), D7 (any language instead of English only) and D8 (post limit 5 → 10 per 24h). Moderation, categorizing and duplicate checks now must handle any language. Affects milestones M3, M5 and M6.
 - **1.3** (2026-11-22): Google is the only sign-in method (intent #2, author decision). US-1 drops GitHub and adds a sign-in failure criterion; US-2 states that reading never needs a login, keeps action buttons visible to visitors, and defines the sign-in dialog. Affects milestone M2.
 - **1.2** (2026-11-22): Switched US-7 and US-18 from numbered pagination to lazy loading, per the author after the design review. Added loading, error, end, accessibility and Back-button criteria; updated D12. Affects milestone M3.

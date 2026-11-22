@@ -1,3 +1,5 @@
+import { mkdirSync } from "node:fs";
+
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle, type PgliteDatabase } from "drizzle-orm/pglite";
 
@@ -24,14 +26,15 @@ export interface CreateDbOptions {
  * Postgres in M9 should only change this factory.
  */
 export function createDb(options: CreateDbOptions = {}): Db {
-  const client = options.inMemory
-    ? new PGlite()
-    : new PGlite(
-        options.dataDir ??
-          process.env.PGLITE_DATA_DIR ??
-          DEFAULT_PGLITE_DATA_DIR,
-      );
-  return drizzle({ client, schema });
+  if (options.inMemory) {
+    return drizzle({ client: new PGlite(), schema });
+  }
+  const dataDir =
+    options.dataDir ?? process.env.PGLITE_DATA_DIR ?? DEFAULT_PGLITE_DATA_DIR;
+  // PGlite creates only the last folder, so a fresh clone (no `.data/`) fails
+  // with ENOENT unless the parents exist.
+  mkdirSync(dataDir, { recursive: true });
+  return drizzle({ client: new PGlite(dataDir), schema });
 }
 
 let sharedDb: Db | undefined;

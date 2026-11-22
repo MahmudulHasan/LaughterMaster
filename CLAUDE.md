@@ -33,7 +33,12 @@ Node 22+. Copy `.env.example` to `.env.local` for local secrets.
 
 - **Tests** (`vitest.config.mts`): two projects chosen by file extension. `*.test.tsx` runs in jsdom with Testing Library (`vitest.setup.ts`); `*.test.ts` runs in node, which PGlite needs. Name a test file to match the environment it needs.
 - **Database** (`src/server/db/`): `createDb({ inMemory })` builds a Drizzle client on PGlite; app code uses the lazy shared `getDb()`, and callers depend on the `Db` type so the M9 switch to hosted Postgres only changes this factory. Local data lives in `PGLITE_DATA_DIR` (default `./.data/pglite`, gitignored). `runMigrations(db)` applies `drizzle/` from the repo root. Tests use an in-memory DB plus `runMigrations`.
-- `next.config.ts` enables `cacheComponents` (Next 16).
+- **Auth** (`src/auth.ts`, `src/server/auth/`): Auth.js v5 beta with JWT sessions. Google is registered only when `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` are set; until M9 local development uses the dev-only "Sign in as" test users (`dev-mina`, `dev-priya`, `dev-admin`), which exist only when `NODE_ENV=development` and Google isn't configured. `next dev` needs `AUTH_SECRET` in `.env.local`. Sign-in failures redirect back to the starting page with `?signin=failed`; `/auth/error` is a redirect route, not a page. Only `src/server/auth/safe-redirect.ts` is safe to import from client code.
+- `next.config.ts` enables `cacheComponents` (Next 16). Consequences learned the hard way:
+  - A Server Component that calls `auth()` must `await connection()` first and sit inside `<Suspense>` (the header does); otherwise prerendering fails and the page never hydrates. Component tests stub `connection` in `vitest.setup.ts`.
+  - `@electric-sql/pglite` is in `serverExternalPackages`; bundling it breaks its file loading.
+- Client effects must survive React StrictMode's double run in dev (e.g. a `<dialog>` cleanup must not call `close()`).
+- Only one `next dev` can run per project folder.
 
 ## Planned architecture (from SPEC.md §4–7)
 

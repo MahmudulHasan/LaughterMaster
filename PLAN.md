@@ -1,6 +1,6 @@
 # LaughterMaster: Build Plan
 
-> Built from [SPEC.md](SPEC.md) v1.4. Each milestone is a small vertical slice.
+> Built from [SPEC.md](SPEC.md) v1.5. Each milestone is a small vertical slice.
 > **Every milestone ends with:** `npm run check` green → spec review (`review-against-spec` skill) → commit → tick the boxes here.
 > The "Course practice" line notes which SDLC skill each milestone exercises.
 
@@ -10,7 +10,7 @@
 |-----------|---------|--------|
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
-| M2 Sign in | US-1, US-2 | Not started |
+| M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Not started |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
@@ -47,16 +47,17 @@
 **Exit:** CI is green on `main` with an empty app.
 
 ## M2: Sign in (US-1, US-2)
-**Course practice:** tackling a risky integration early; security-minded design.
-- [ ] Auth.js with the Google provider only (Google Cloud OAuth client for localhost)
-- [ ] Sign-in dialog (title per action, Continue with Google, Not now; focus trap, Escape closes) opened by Like, Dislike, Report and Post a joke when logged out
-- [ ] Test: every reading page (home, All jokes, joke page, profile) renders for a logged-out visitor
-- [ ] `User` table; first sign-in creates a profile from the provider data
-- [ ] Header shows "Sign in", or the avatar + "Sign out"
-- [ ] Sign-in prompt for actions that need login, returning to the original page
-- [ ] Test: no public API response or page contains the user's email
+**Course practice:** tackling a risky integration early; security-minded design; designing for testability.
+- [x] Auth.js with the Google provider, active only when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set (the real client is created in M9, D15)
+- [x] **Dev-only test sign-in** (D15): "Sign in as" a few seeded test users; registered only when running in development and Google isn't configured; never present in a production build
+- [x] `users` table + migration; first sign-in creates a member profile from the provider's name and photo; later sign-ins update them
+- [x] Session exposes only id, name and photo, never email
+- [x] Header shows "Sign in", or the avatar + "Sign out"
+- [x] Reusable sign-in dialog (title per action, Continue with Google, Not now; native modal so focus moves in, Escape closes, focus returns) opened by the header's Sign in and Post a joke; Like, Dislike and Report wire into it when they arrive (M3, M4, M6)
+- [x] Sign-in returns to the page it started from; a cancelled or failed sign-in shows "Sign-in didn't finish. Try again."
+- [x] Tests: dev sign-in is never registered in production or when Google is configured; user upsert; session has no email; home renders for a logged-out visitor (later reading pages add the same test as they land)
 
-**Exit:** US-1 and US-2 criteria pass; OAuth is mocked in tests.
+**Exit:** US-1 and US-2 criteria pass with the test sign-in and mocked OAuth. The live Google flow is verified in M9.
 
 ## M3: Post & view jokes (US-4, US-5, US-6, US-7, US-18)
 **Course practice:** test-first from acceptance criteria.
@@ -107,6 +108,7 @@
 - [ ] `/admin` queue (404 for non-admins): restore, remove, ban
 - [ ] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
 - [ ] Display name change (US-3)
+- [ ] Session shows the new name right after a rename (today the name is copied into the sign-in token, so it stays stale until the next sign-in)
 
 **Exit:** US-15, US-16, and US-3 pass.
 
@@ -132,7 +134,9 @@
 - [ ] Playwright smoke test: sign in (mocked) → post → vote → appears in the top 10 → share link
 - [ ] Accessibility pass (keyboard + axe) and performance check against the NFRs
 - [ ] `/security-review` and `review-against-spec` on the whole app
-- [ ] Vercel + hosted Postgres; secrets set in Vercel; OAuth callback URLs updated
+- [ ] Create the Google OAuth client (Google Cloud Console) with local and production redirect URLs; add the ID and secret to `.env.local` and Vercel (D15)
+- [ ] Verify the real Google sign-in end to end, locally and deployed
+- [ ] Vercel + hosted Postgres; secrets set in Vercel
 - [ ] Verify preview cards on real social platforms
 - [ ] README with setup, architecture, and a course retrospective
 
