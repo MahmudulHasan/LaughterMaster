@@ -1,6 +1,6 @@
 # LaughterMaster: Build Plan
 
-> Built from [SPEC.md](SPEC.md) v1.1. Each milestone is a small vertical slice.
+> Built from [SPEC.md](SPEC.md) v1.3. Each milestone is a small vertical slice.
 > **Every milestone ends with:** `npm run check` green → spec review (`review-against-spec` skill) → commit → tick the boxes here.
 > The "Course practice" line notes which SDLC skill each milestone exercises.
 
@@ -48,7 +48,9 @@
 
 ## M2: Sign in (US-1, US-2)
 **Course practice:** tackling a risky integration early; security-minded design.
-- [ ] Auth.js with GitHub provider (Google can follow in the same milestone or M9)
+- [ ] Auth.js with the Google provider only (Google Cloud OAuth client for localhost)
+- [ ] Sign-in dialog (title per action, Continue with Google, Not now; focus trap, Escape closes) opened by Like, Dislike, Report and Post a joke when logged out
+- [ ] Test: every reading page (home, All jokes, joke page, profile) renders for a logged-out visitor
 - [ ] `User` table; first sign-in creates a profile from the provider data
 - [ ] Header shows "Sign in", or the avatar + "Sign out"
 - [ ] Sign-in prompt for actions that need login, returning to the original page
@@ -63,9 +65,10 @@
 - [ ] Limit: 5 posts per member per 24h, with a "try again at …" message
 - [ ] `/joke/[id]` page; 404 page for unknown, deleted, or hidden jokes
 - [ ] Author can delete their own joke with a confirmation step
-- [ ] Shared pagination helper (page parsing, bounds, Previous/Next state) with unit tests for invalid, out-of-range, and empty cases
-- [ ] `/jokes` All jokes page: approved jokes only, newest first, 20 per page, `?page=` in the URL; "All jokes" link in the header
-- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + paginated list of the member's approved jokes; 404 for unknown members
+- [ ] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
+- [ ] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
+- [ ] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position
+- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; 404 for unknown members
 - [ ] Owner's view of their own profile shows their pending jokes marked "Under review"
 - [ ] Author names everywhere link to their profile
 - [ ] Test: profile and list responses never include an email or vote counts

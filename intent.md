@@ -20,7 +20,7 @@ _Added later:_ Each person has a **profile** where all of their jokes are shown.
 | # | Topic | Decision |
 |---|-------|----------|
 | 1 | Audience | The **general public**. Anyone on the internet can visit, so moderation and anti-cheating are required, not optional. |
-| 2 | Accounts | **Anyone can browse and share. Posting and voting need a login** (e.g. Google/GitHub sign-in). |
+| 2 | Accounts | **The public can see and read every joke without logging in.** Liking, disliking and posting need a login, and **Google is the only sign-in method**. |
 | 3 | "Of the day" | Jokes **posted in the last rolling 24 hours** compete for the top 10. |
 | 4 | Ranking | **Score = likes − dislikes.** Simple and explainable. Known trade-off: a joke at 1/0 ties one at 51/50. |
 | 5 | Voting rules | A user can **change or undo** their vote. Users **cannot vote on their own jokes**. Like and dislike counts are **not shown publicly** (only the ranking). |
@@ -31,7 +31,7 @@ _Added later:_ Each person has a **profile** where all of their jokes are shown.
 | 10 | vs old spec | This **replaces** the old LaughterMaster spec. The random-joke browser and the Claude joke generator are dropped. |
 | 11 | Deployment | **Local first, deploy later:** build and test locally, then deploy to Vercel + a hosted database (e.g. Postgres) in the final milestone. |
 | 12 | Profiles | Every member has a **public profile page** that lists **all of their jokes**. |
-| 13 | All jokes page | A separate page lists **every posted joke from everyone**, with **pagination**. |
+| 13 | All jokes page | A separate page lists **every posted joke from everyone**, **loaded lazily**: more jokes load as you scroll. Profiles load the same way. |
 
 ## Open questions (for the spec stage)
 

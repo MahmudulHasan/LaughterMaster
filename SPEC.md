@@ -1,12 +1,12 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.1** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.3** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > Items marked **PO decision (confirm)** are defaults I chose for open questions. The author can overrule any of them (see §9).
 
 ## 1. Product summary
 
-LaughterMaster is a public community where people **post jokes**, **like or dislike** other people's jokes, and **share** their favorites. The home page shows the **top 10 jokes posted in the last 24 hours**, an **All jokes** page lists every joke with pagination, and every member has a **profile** listing their jokes. Claude works behind the scenes as a **moderator, categorizer, and duplicate-catcher**, and posts one clearly labeled **AI joke of the day**.
+LaughterMaster is a public community where people **post jokes**, **like or dislike** other people's jokes, and **share** their favorites. The home page shows the **top 10 jokes posted in the last 24 hours**, an **All jokes** page lists every joke, loading more as you scroll, and every member has a **profile** listing their jokes. Claude works behind the scenes as a **moderator, categorizer, and duplicate-catcher**, and posts one clearly labeled **AI joke of the day**.
 
 **Why it exists:** a real project for practicing every stage of the AI-native SDLC (intent, spec, plan, build, test, review, ship). When learning and polish trade off, learning wins.
 
@@ -33,15 +33,20 @@ Priorities use MoSCoW: **M**ust, **S**hould, **C**ould. Acceptance criteria use 
 ### Epic A: Accounts
 
 **US-1 · Sign in · M**
-As a visitor, I want to sign in with GitHub or Google, so that I can post and vote without creating a new password.
-- Given I'm logged out, when I click "Sign in", then I can choose GitHub or Google, and after approving I return to the page I was on.
-- Given I sign in for the first time, then a member profile is created with my provider's display name and avatar.
+As a visitor, I want to sign in with my Google account, so that I can like, dislike and post without creating a new password. _(intent #2)_
+- **Google is the only sign-in method.** There are no passwords and no other providers.
+- Given I'm logged out, when I click "Sign in", then I see one "Continue with Google" button, and after approving with Google I return to the page I was on.
+- Given I cancel or Google returns an error, then I'm back on the page I was on, still logged out, with a short "Sign-in didn't finish. Try again." message.
+- Given I sign in for the first time, then a member profile is created with my Google display name and profile photo.
 - Given I'm signed in, when I click "Sign out", then I'm logged out and can still browse.
 - My email address is **never** shown on any page or returned by any public API.
 
 **US-2 · Logged-out prompts · M**
 As a visitor, I want a clear prompt when I try something that needs an account, so that I know why I can't do it.
-- Given I'm logged out, when I click Like, Dislike, Report, or "Post a joke", then I see a sign-in prompt and nothing is saved.
+- Given I'm logged out, then I can see and read every page that lists jokes: home, All jokes, joke pages and profiles. Reading never asks me to sign in.
+- Given I'm logged out, then the Like, Dislike and "Post a joke" controls are still visible (not hidden or greyed out), so I can discover them.
+- Given I'm logged out, when I click Like, Dislike, Report, or "Post a joke", then a sign-in dialog opens with a title naming the action ("Sign in to like jokes"), a "Continue with Google" button, and "Not now". Nothing is saved.
+- The dialog is a real modal: focus moves into it, Escape and "Not now" close it, and focus returns to the button that opened it.
 - After I sign in from that prompt, I return to the same page. (The action itself isn't replayed automatically.)
 
 **US-3 · Display name · S**
@@ -69,10 +74,14 @@ As anyone, I want each joke to have its own page, so that it can be linked and s
 
 **US-7 · All jokes page · M** _(intent #13)_
 As anyone, I want to browse every joke ever posted, so that I can find more than today's top 10 and fresh jokes get votes.
-- `/jokes` lists all **approved** jokes from everyone, **newest first**, **20 per page**. **(PO decision: confirm)**
-- Pagination uses numbered page links plus Previous / Next, and the page number is in the URL (`/jokes?page=3`) so pages can be linked and the browser Back button works.
-- Given I'm on page 1, Previous is disabled. Given I'm on the last page, Next is disabled.
-- Given `page` is missing, not a number, or less than 1, then page 1 is shown. Given `page` is beyond the last page, then I see "No jokes on this page" with a link to page 1.
+- `/jokes` lists all **approved** jokes from everyone, **newest first**, **loaded lazily in batches of 20**. _(intent #13)_
+- Given I open the page, then the first 20 jokes are rendered by the server, so the page works before any script runs.
+- Given I scroll to within about one screen of the end, then the next 20 load automatically and are added below. **No duplicates or gaps**, even if new jokes are posted while I scroll (the list pages by cursor, not by offset).
+- A visible **"Load more jokes"** button is always present below the list as the fallback for keyboard and screen-reader users, and if automatic loading fails.
+- While a batch loads, 2 skeleton cards are shown, and a polite live region announces "Loading more jokes…" and then "20 more jokes loaded".
+- Given a batch fails to load, then I see "Couldn't load more jokes" with a **Retry** button, and the jokes already shown stay.
+- Given there are no more jokes, then automatic loading stops and I see "You've seen every joke" with a "Post the next one" button.
+- Given I open a joke and press Back, then the list returns with the jokes I'd loaded and my scroll position. **(PO decision: confirm)**
 - Given there are no approved jokes, then I see the same empty state as the home page, with a "Post a joke" button.
 - Pending, rejected, hidden, removed, and deleted jokes never appear. The daily AI joke **does** appear, with its AI badge.
 - Each entry shows the joke, the author (linked to their profile), the category, the relative post time, and the vote and share controls. No vote counts are shown (intent #5).
@@ -81,7 +90,7 @@ As anyone, I want to browse every joke ever posted, so that I can find more than
 **US-18 · Member profile · M** _(intent #12)_
 As anyone, I want to see a member's profile with all their jokes, so that I can read more from authors I like.
 - Every member has a public profile at `/u/<id>`, showing their display name, avatar, "Joined <month year>", and their number of approved jokes.
-- It lists **all of the member's approved jokes**, newest first, with the same pagination rules as US-7 (20 per page, `?page=` in the URL).
+- It lists **all of the member's approved jokes**, newest first, loaded lazily with the same rules as US-7 (batches of 20, Load more fallback, end message).
 - The author name on every joke (home, all jokes, joke page) links to the author's profile.
 - Given a member has no approved jokes, the profile says "<name> hasn't posted any jokes yet."
 - Given the member doesn't exist or is banned, then I see "This profile isn't available" with HTTP status 404.
@@ -187,11 +196,11 @@ Report  { jokeId, userId, reason, createdAt }                 unique(jokeId, use
 
 ## 7. Proposed tech stack (for engineering to confirm)
 
-Next.js (App Router) + TypeScript + Tailwind · Auth.js (GitHub + Google) · Postgres via Drizzle ORM (PGlite locally and in tests, hosted Postgres when deployed) · Anthropic TypeScript SDK · `next/og` for preview images · Vitest + Testing Library + Playwright · GitHub Actions CI · Vercel (deployed in the final milestone, intent #11).
+Next.js (App Router) + TypeScript + Tailwind · Auth.js (Google provider only) · Postgres via Drizzle ORM (PGlite locally and in tests, hosted Postgres when deployed) · Anthropic TypeScript SDK · `next/og` for preview images · Vitest + Testing Library + Playwright · GitHub Actions CI · Vercel (deployed in the final milestone, intent #11).
 
 ## 8. Out of scope
 
-Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, infinite scroll, editing jokes, languages other than English, images or memes in jokes, per-platform share buttons, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
+Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, editing jokes, languages other than English, images or memes in jokes, per-platform share buttons, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
 
 ## 9. Decision log
 
@@ -210,11 +219,13 @@ Decisions from intent.md are final unless the author changes them. **PO decision
 | D9 | Categories | A fixed list of 8; no category filter on the top 10 in the MVP | PO (confirm) |
 | D10 | Public profile info | Display name + avatar only | PO (confirm) |
 | D11 | Moderation outage | Fail closed: jokes stay pending and are retried | PO (confirm) |
-| D12 | All jokes page and profile lists | Newest first, 20 per page, numbered pages with `?page=` in the URL | PO (confirm) |
+| D12 | All jokes page and profile lists | Lazy loading (author decision, intent #13): newest first, batches of 20, auto-load on scroll plus a Load more button, cursor-based. Back restores scroll position (PO, confirm). | Author + PO |
 | D13 | What a profile shows | Name, avatar, join month, joke count, approved jokes. Never email, votes cast, or vote counts. The owner also sees their own pending jokes. | PO (confirm) |
 | D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | PO (confirm) |
 
 ## Changelog
 
+- **1.3** (2026-11-22): Google is the only sign-in method (intent #2, author decision). US-1 drops GitHub and adds a sign-in failure criterion; US-2 states that reading never needs a login, keeps action buttons visible to visitors, and defines the sign-in dialog. Affects milestone M2.
+- **1.2** (2026-11-22): Switched US-7 and US-18 from numbered pagination to lazy loading, per the author after the design review. Added loading, error, end, accessibility and Back-button criteria; updated D12. Affects milestone M3.
 - **1.1** (2026-11-22): Added US-18 (member profile, intent #12). Rewrote US-7 from a "New feed" with Load more into an "All jokes" page with numbered pagination, and raised it from Should to Must (intent #13). Added PO decisions D12–D14. Affects milestone M3.
 - **1.0** (2026-11-22): Rewritten from intent.md for the community joke platform. Replaces draft v0.1 (random jokes + Claude generator).
