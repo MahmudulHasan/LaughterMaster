@@ -9,7 +9,7 @@
 | Milestone | Stories | Status |
 |-----------|---------|--------|
 | M0 Foundations | – | Done |
-| M1 Scaffold & CI | – | In progress (waiting for first CI run) |
+| M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Not started |
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Not started |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
@@ -42,7 +42,7 @@
 - [x] Vitest + Testing Library configured with one sample test
 - [x] Drizzle + PGlite wired up; first migration creates an empty schema
 - [x] `.env.example` lists every required variable (no real values)
-- [ ] GitHub Actions runs `npm run check` on push and PR (workflow added; not yet run)
+- [x] GitHub Actions runs `npm run check` on push and PR (run #1 green)
 
 **Exit:** CI is green on `main` with an empty app.
 
