@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+out/
+dist/
+
+# env and secrets
+.env
+.env*.local
+
+# local data
+*.db
+*.sqlite
+
+# misc
+.DS_Store
+coverage/
