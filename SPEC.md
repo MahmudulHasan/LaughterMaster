@@ -1,8 +1,8 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.3** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.4** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
-> Items marked **PO decision (confirm)** are defaults I chose for open questions. The author can overrule any of them (see §9).
+> All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
 ## 1. Product summary
 
@@ -59,8 +59,8 @@ As a member, I want to change my display name, so that I choose how I'm credited
 As a member, I want to post a joke, so that other people can enjoy and vote on it.
 - Given I'm signed in, when I submit text of **10–500 characters**, then it is screened (US-11), and if it's approved it appears on its own page and in the "New" feed.
 - Given the text is shorter than 10 or longer than 500 characters, then I see a validation error and nothing is saved. Whitespace is trimmed before counting.
-- Given I've already posted **5 jokes in the last 24 hours**, when I try to post another, then I'm told when I can post again. **(PO decision: confirm)**
-- Jokes are **English only** for the MVP. **(PO decision: confirm)**
+- Given I've already posted **10 jokes in the last 24 hours**, when I try to post another, then I'm told when I can post again. _(D8)_
+- Jokes can be in **any language**. The 10–500 limit counts characters as people see them (Unicode graphemes), so emoji and non-Latin scripts count fairly. The interface itself stays English-only. _(D7)_
 
 **US-5 · No edits, but delete · M**
 As a member, I want to delete my own joke, so that I can remove something I regret. Editing is not allowed, because edits could change a joke after it has collected votes.
@@ -81,7 +81,7 @@ As anyone, I want to browse every joke ever posted, so that I can find more than
 - While a batch loads, 2 skeleton cards are shown, and a polite live region announces "Loading more jokes…" and then "20 more jokes loaded".
 - Given a batch fails to load, then I see "Couldn't load more jokes" with a **Retry** button, and the jokes already shown stay.
 - Given there are no more jokes, then automatic loading stops and I see "You've seen every joke" with a "Post the next one" button.
-- Given I open a joke and press Back, then the list returns with the jokes I'd loaded and my scroll position. **(PO decision: confirm)**
+- Given I open a joke and press Back, then the list returns with the jokes I'd loaded and my scroll position. _(confirmed, see §9)_
 - Given there are no approved jokes, then I see the same empty state as the home page, with a "Post a joke" button.
 - Pending, rejected, hidden, removed, and deleted jokes never appear. The daily AI joke **does** appear, with its AI badge.
 - Each entry shows the joke, the author (linked to their profile), the category, the relative post time, and the vote and share controls. No vote counts are shown (intent #5).
@@ -94,8 +94,8 @@ As anyone, I want to see a member's profile with all their jokes, so that I can 
 - The author name on every joke (home, all jokes, joke page) links to the author's profile.
 - Given a member has no approved jokes, the profile says "<name> hasn't posted any jokes yet."
 - Given the member doesn't exist or is banned, then I see "This profile isn't available" with HTTP status 404.
-- **Viewing my own profile:** I see the same public list, plus an "Edit name" link (US-3) and a link to `/me` for my private stats (US-9). My pending jokes appear only to me, marked "Under review". **(PO decision: confirm)**
-- The profile never shows email, vote counts, or what the member has voted on. **(PO decision: confirm)**
+- **Viewing my own profile:** I see the same public list, plus an "Edit name" link (US-3) and a link to `/me` for my private stats (US-9). My pending jokes appear only to me, marked "Under review". _(confirmed, see §9)_
+- The profile never shows email, vote counts, or what the member has voted on. _(confirmed, see §9)_
 - JokeBot has a profile too, listing all of its daily AI jokes.
 
 ### Epic C: Voting & ranking
@@ -110,13 +110,13 @@ As a member, I want to like or dislike a joke, so that the best jokes rise.
 
 **US-9 · Author stats · S**
 As an author, I want to see how my jokes are doing, so that posting feels rewarding.
-- On "My jokes" (`/me`), I see each of my jokes with its likes, dislikes, and score. No one else sees these numbers. **(PO decision: confirm)**
+- On "My jokes" (`/me`), I see each of my jokes with its likes, dislikes, and score. No one else sees these numbers. _(confirmed, see §9)_
 
 **US-10 · Top 10 of the day · M**
 As anyone, I want the home page to show the 10 best jokes from the last 24 hours, so that I get the best laughs fast.
 - **Eligible:** approved, not hidden or deleted, **posted within the last rolling 24 hours**, and not posted by JokeBot.
 - **Score** = likes − dislikes. **(intent #4)**
-- **Tie-breaks:** (1) more total votes ranks higher, then (2) the earlier post ranks higher. Rewarding the earlier post means copycats can't win ties. **(PO decision: confirm)**
+- **Tie-breaks:** (1) more total votes ranks higher, then (2) the earlier post ranks higher. Rewarding the earlier post means copycats can't win ties. _(confirmed, see §9)_
 - **Cold start (intent #9):** if fewer than 10 jokes are eligible, fill the remaining slots with the best jokes posted 1–7 days ago, using the same scoring. They appear under a separate "From this week" heading.
 - If there are no jokes at all, show an empty state that says "No jokes yet. Be the first!", with a "Post a joke" button.
 - The ranking can be up to **60 seconds** stale (it's cached).
@@ -126,7 +126,7 @@ As anyone, I want the home page to show the 10 best jokes from the last 24 hours
 
 **US-11 · AI moderation on submit · M**
 As the community, I want harmful content blocked before it's public, so that the site stays welcoming.
-- Every submitted joke (and every display name, per US-3) is sent to Claude **before it becomes visible**.
+- Every submitted joke (and every display name, per US-3) is sent to Claude **before it becomes visible**. Moderation must work for jokes in **any language** (D7); the rejection reason is shown in English.
 - **Blocked categories:** hate or harassment targeting protected groups or real private people, sexual content, graphic violence, self-harm encouragement, spam, ads, and links.
 - When a joke is **rejected**, the author sees a short, non-judgmental reason ("This looks like it targets a group of people"), and the joke isn't saved publicly.
 - If Claude is **unavailable** or times out (after 10 seconds), the joke is saved as **pending** and the author is told "We're checking your joke. It'll appear shortly." A retry job screens pending jokes. **Pending jokes are never public (fail closed).**
@@ -134,18 +134,19 @@ As the community, I want harmful content blocked before it's public, so that the
 
 **US-12 · Auto-categorize · S**
 As a reader, I want jokes tagged by category, so that I can find the kind of humor I like.
-- The same Claude call that moderates a joke also assigns exactly one category from a fixed list: **Puns, Dad jokes, One-liners, Tech, Animals, Wordplay, Knock-knock, Other**. **(PO decision: confirm)**
-- The category shows as a chip on every joke.
+- The same Claude call that moderates a joke also assigns exactly one category from a fixed list: **Puns, Dad jokes, One-liners, Tech, Animals, Wordplay, Knock-knock, Other**. _(confirmed, see §9)_
+- The category shows as a chip on every joke. Category names stay in English whatever the joke's language.
 
 **US-13 · Duplicate detection · S**
 As the community, I want reposted jokes blocked, so that nobody farms votes with other people's jokes.
-- **Exact duplicate:** text that matches an existing approved joke after normalizing (lowercase, collapsed whitespace, punctuation removed) is rejected, with a link to the original. **(PO decision: confirm)**
+- **Exact duplicate:** text that matches an existing approved joke after normalizing (lowercase, collapsed whitespace, punctuation removed) is rejected, with a link to the original. _(confirmed, see §9)_
+- Duplicates are checked within the same language; a translation of an existing joke is not treated as a duplicate.
 - **Near duplicate:** if Claude judges a joke to be the same joke as one of the 20 most similar existing jokes, the post is rejected the same way. The threshold can be tuned later.
 
 **US-14 · AI joke of the day · S**
 As a visitor, I want a daily AI joke, so that there's always something to laugh at.
 - Once a day at 08:00 UTC, JokeBot posts one family-friendly joke. It goes through the same moderation and duplicate checks.
-- It's shown in a separate **"AI joke of the day"** slot above the top 10, with an "AI" badge. **It doesn't compete in the top 10. (PO decision: confirm)**
+- It's shown in a separate **"AI joke of the day"** slot above the top 10, with an "AI" badge. **It doesn’t compete in the top 10.** _(confirmed, see §9)_
 - Members can vote on it and share it like any other joke.
 
 ### Epic E: Safety & moderation
@@ -153,7 +154,7 @@ As a visitor, I want a daily AI joke, so that there's always something to laugh 
 **US-15 · Report a joke · M**
 As a member, I want to report a joke that slipped through, so that the community can fix moderation misses.
 - Each member can report a joke once, choosing a reason: Offensive, Spam, Plagiarized, or Other.
-- When **3 different members** report a joke, it's **hidden** automatically until an admin reviews it. **(PO decision: confirm)**
+- When **5 different members** report a joke, it's **hidden** automatically until an admin reviews it. _(D3)_
 - Members can't report their own jokes.
 
 **US-16 · Admin review queue · M**
@@ -174,7 +175,7 @@ As anyone, I want shared links to look good on social media, so that friends cli
 | Area | Requirement |
 |------|-------------|
 | Safety | Public content must pass moderation (US-11), and moderation fails closed. |
-| Abuse | Rate limits: 5 posts per member per 24h, 300 votes per member per hour, 20 reports per member per day. |
+| Abuse | Rate limits: 10 posts per member per 24h, 300 votes per member per hour, 20 reports per member per day. |
 | Privacy | Only the display name and avatar are public. Emails are never exposed. |
 | Secrets | `ANTHROPIC_API_KEY` and the OAuth secrets live only in `.env.local` (and the host's secret store). They're never committed and never sent to the browser. |
 | Cost | Claude calls use a small, fast model (Haiku class) and are capped at about 2 calls per submitted joke. |
@@ -200,31 +201,32 @@ Next.js (App Router) + TypeScript + Tailwind · Auth.js (Google provider only) �
 
 ## 8. Out of scope
 
-Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, editing jokes, languages other than English, images or memes in jokes, per-platform share buttons, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
+Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, editing jokes, translating jokes, a non-English interface, images or memes in jokes, per-platform share buttons, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
 
 ## 9. Decision log
 
-Decisions from intent.md are final unless the author changes them. **PO decisions are defaults the author should confirm or overrule.**
+Decisions from intent.md are final unless the author changes them. All PO proposals below were reviewed by the author on 2026-11-22: **Confirmed** = accepted as proposed, **Changed** = the author chose differently.
 
 | # | Question | Decision | Source |
 |---|----------|----------|--------|
-| D1 | Do authors see their own counts? | Yes, privately on `/me`. Public sees no counts. | PO (confirm) |
-| D2 | Tie-breaks | More total votes, then the earlier post | PO (confirm) |
-| D3 | Report threshold | 3 distinct members hide a joke | PO (confirm) |
-| D4 | Who is admin | Member IDs listed in the `ADMIN_USER_IDS` env var | PO (confirm) |
-| D5 | Duplicates | Block exact and near duplicates, with a link to the original | PO (confirm) |
-| D6 | Does the bot joke compete? | No; it has its own slot | PO (confirm) |
-| D7 | Joke rules | 10–500 chars, English, no edits, the author can delete | PO (confirm) |
-| D8 | Post rate limit | 5 jokes per member per 24h | PO (confirm) |
-| D9 | Categories | A fixed list of 8; no category filter on the top 10 in the MVP | PO (confirm) |
-| D10 | Public profile info | Display name + avatar only | PO (confirm) |
-| D11 | Moderation outage | Fail closed: jokes stay pending and are retried | PO (confirm) |
-| D12 | All jokes page and profile lists | Lazy loading (author decision, intent #13): newest first, batches of 20, auto-load on scroll plus a Load more button, cursor-based. Back restores scroll position (PO, confirm). | Author + PO |
-| D13 | What a profile shows | Name, avatar, join month, joke count, approved jokes. Never email, votes cast, or vote counts. The owner also sees their own pending jokes. | PO (confirm) |
-| D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | PO (confirm) |
+| D1 | Do authors see their own counts? | Yes, privately on `/me`. Public sees no counts. | Confirmed |
+| D2 | Tie-breaks | More total votes, then the earlier post | Confirmed |
+| D3 | Report threshold | **5** distinct members hide a joke (proposed: 3) | **Changed** |
+| D4 | Who is admin | Member IDs listed in the `ADMIN_USER_IDS` env var | Confirmed |
+| D5 | Duplicates | Block exact and near duplicates, with a link to the original | Confirmed |
+| D6 | Does the bot joke compete? | No; it has its own slot | Confirmed |
+| D7 | Joke rules | 10–500 characters, **any language** (proposed: English only), no edits, the author can delete | **Changed** |
+| D8 | Post rate limit | **10** jokes per member per 24h (proposed: 5) | **Changed** |
+| D9 | Categories | A fixed list of 8; no category filter on the top 10 in the MVP | Confirmed |
+| D10 | Public profile info | Display name + avatar only | Confirmed |
+| D11 | Moderation outage | Fail closed: jokes stay pending and are retried | Confirmed |
+| D12 | All jokes page and profile lists | Lazy loading (intent #13): newest first, batches of 20, auto-load plus Load more, cursor-based. Back restores the list and scroll position. | Confirmed |
+| D13 | What a profile shows | Name, avatar, join month, joke count, approved jokes. Never email, votes cast, or vote counts. The owner also sees their own pending jokes. | Confirmed |
+| D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | Confirmed |
 
 ## Changelog
 
+- **1.4** (2026-11-22): Author reviewed all PO decisions. Confirmed D1, D2, D4–D6, D9–D14. Changed D3 (report threshold 3 → 5), D7 (any language instead of English only) and D8 (post limit 5 → 10 per 24h). Moderation, categorizing and duplicate checks now must handle any language. Affects milestones M3, M5 and M6.
 - **1.3** (2026-11-22): Google is the only sign-in method (intent #2, author decision). US-1 drops GitHub and adds a sign-in failure criterion; US-2 states that reading never needs a login, keeps action buttons visible to visitors, and defines the sign-in dialog. Affects milestone M2.
 - **1.2** (2026-11-22): Switched US-7 and US-18 from numbered pagination to lazy loading, per the author after the design review. Added loading, error, end, accessibility and Back-button criteria; updated D12. Affects milestone M3.
 - **1.1** (2026-11-22): Added US-18 (member profile, intent #12). Rewrote US-7 from a "New feed" with Load more into an "All jokes" page with numbered pagination, and raised it from Should to Must (intent #13). Added PO decisions D12–D14. Affects milestone M3.

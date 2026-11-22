@@ -1,6 +1,6 @@
 # LaughterMaster: Build Plan
 
-> Built from [SPEC.md](SPEC.md) v1.3. Each milestone is a small vertical slice.
+> Built from [SPEC.md](SPEC.md) v1.4. Each milestone is a small vertical slice.
 > **Every milestone ends with:** `npm run check` green → spec review (`review-against-spec` skill) → commit → tick the boxes here.
 > The "Course practice" line notes which SDLC skill each milestone exercises.
 
@@ -30,7 +30,7 @@
 - [x] `SPEC.md` v1.0 with user stories and acceptance criteria
 - [x] `PLAN.md` (this file)
 - [x] Project skills in `.claude/skills/` (product-owner, plan-milestones, implement-story, review-against-spec)
-- [ ] Author confirms or overrules the PO decisions D1–D14 in SPEC.md §9
+- [x] Author confirms or overrules the PO decisions D1–D14 in SPEC.md §9 (D3, D7, D8 changed)
 - [ ] Commit and push
 
 **Exit:** the spec is confirmed and every open question has an answer.
@@ -61,8 +61,8 @@
 ## M3: Post & view jokes (US-4, US-5, US-6, US-7, US-18)
 **Course practice:** test-first from acceptance criteria.
 - [ ] `Joke` table + status field; jokes are auto-approved for now (moderation is added in M5, still local-only)
-- [ ] Post form: 10–500 chars after trimming, with validation errors
-- [ ] Limit: 5 posts per member per 24h, with a "try again at …" message
+- [ ] Post form: 10–500 characters after trimming, counted as Unicode graphemes (any language), with validation errors
+- [ ] Limit: 10 posts per member per 24h, with a "try again at …" message
 - [ ] `/joke/[id]` page; 404 page for unknown, deleted, or hidden jokes
 - [ ] Author can delete their own joke with a confirmation step
 - [ ] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
@@ -90,7 +90,7 @@
 ## M5: Claude moderation (US-11, US-12, US-13)
 **Course practice:** building an AI feature responsibly (prompts, evals, failure modes).
 - [ ] One Claude call returns structured JSON: `{ decision, reason, category }`
-- [ ] A small **eval set** (about 30 labeled jokes, good and bad) checks the prompt; run it manually and record the results
+- [ ] A small **eval set** (about 30 labeled jokes, good and bad, including several non-English ones) checks the prompt; run it manually and record the results
 - [ ] Rejected → friendly reason; timeout or error → `pending`, never public
 - [ ] Retry job for pending jokes
 - [ ] Exact-duplicate check on normalized text; near-duplicate check via Claude against the 20 closest candidates
@@ -103,7 +103,7 @@
 ## M6: Reports & admin (US-15, US-16, US-3)
 **Course practice:** designing for misuse.
 - [ ] `Report` table, unique per (joke, user); members can't report their own jokes
-- [ ] 3 reports → hidden
+- [ ] 5 reports → hidden
 - [ ] `/admin` queue (404 for non-admins): restore, remove, ban
 - [ ] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
 - [ ] Display name change (US-3)

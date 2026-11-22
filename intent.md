@@ -32,8 +32,9 @@ _Added later:_ Each person has a **profile** where all of their jokes are shown.
 | 11 | Deployment | **Local first, deploy later:** build and test locally, then deploy to Vercel + a hosted database (e.g. Postgres) in the final milestone. |
 | 12 | Profiles | Every member has a **public profile page** that lists **all of their jokes**. |
 | 13 | All jokes page | A separate page lists **every posted joke from everyone**, **loaded lazily**: more jokes load as you scroll. Profiles load the same way. |
+| 14 | Joke language | Jokes can be posted in **any language**; the interface stays English. |
 
-## Open questions (for the spec stage)
+## Open questions (resolved: see SPEC.md §9 decision log, 2026-11-22)
 
 - **Counts vs ranking:** Does the joke author see their own joke's counts? Do voters see anything beyond their own vote?
 - **Ties:** with likes − dislikes, ties will be common. Break them by newest first? Most total votes?
