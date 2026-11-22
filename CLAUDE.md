@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes, catches duplicates and posts a daily AI joke.
 
-Milestones M1 (scaffold, CI) and M2 (sign-in) are done; M3 is in progress, with posting (`/post`), the joke page (`/joke/[id]`) and deleting your own joke built. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
+Milestones M1 (scaffold, CI) and M2 (sign-in) are done; M3 is in progress, with posting (`/post`), the joke page (`/joke/[id]`), deleting your own joke and the lazy `/jokes` list built; `/u/[id]` profiles are next. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
 
 ## Sources of truth
 
@@ -50,7 +50,7 @@ Cross-cutting rules that span many files:
 - **Moderation fails closed** (US-11): one Claude call per submission returns `{decision, reason, category}`. On a timeout or error the joke stays `pending` and a retry job rechecks it. Display names go through the same check.
 - **Ranking** (US-10): eligible = approved, posted in the last rolling 24h, not JokeBot. Score = likes − dislikes; ties go to more total votes, then the earlier post. Fewer than 10 → fill from days 1–7 under "From this week". Cached for 60s.
 - **Votes**: one per (joke, user), toggle or switch, no self-votes (API returns 403). Vote counts are never public; only the author sees their own counts, on `/me`.
-- **Lists** (`/jokes`, `/u/[id]`) are lazy-loaded in batches of 20 with **cursor pagination** (not offset), so no duplicates or gaps appear while new jokes arrive. Each has a server-rendered first batch and a Load more fallback.
+- **Lists** (`/jokes`, `/u/[id]`) are lazy-loaded in batches of 20 with **cursor pagination** (not offset), so no duplicates or gaps appear while new jokes arrive. Each has a server-rendered first batch and a Load more fallback. Built as `listPublicJokes` (`src/server/jokes/list.ts`; the cursor is the last joke's id, compared on the stored `(created_at, id)` row), `GET /api/jokes?cursor=&author=`, and the client `LazyJokeList`. On Back, Next 16 keeps the previous page alive (React Activity); `LazyJokeList` also saves batches and scroll in sessionStorage for full-page Back.
 - **Auth boundary**: every reading page works logged out. Like, dislike, report and post open a sign-in dialog. Admins are the IDs in the `ADMIN_USER_IDS` env var; `/admin` returns 404 for everyone else.
 - **JokeBot** is a system user whose daily joke goes through normal moderation and gets its own slot, never a top-10 rank.
 

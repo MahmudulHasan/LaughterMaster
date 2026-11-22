@@ -19,7 +19,8 @@ const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
  */
 export function countGraphemes(text: string): number {
   let count = 0;
-  for (const _segment of segmenter.segment(text)) count++;
+  const segments = segmenter.segment(text)[Symbol.iterator]();
+  while (!segments.next().done) count++;
   return count;
 }
 
