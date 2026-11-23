@@ -3,11 +3,14 @@
 
 import {
   boolean,
+  index,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+
+import type { JokeStatus } from "../jokes/types";
 
 /** Members. `email` is private and must never reach a page or API response. */
 export const users = pgTable(
@@ -37,3 +40,49 @@ export const users = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+/**
+ * Jokes (SPEC §6). `status` drives visibility everywhere; only "approved" is
+ * public. Values come from JokeStatus in src/server/jokes/types.ts.
+ *
+ * M3 auto-approves new jokes locally. M5 adds Claude moderation: new jokes
+ * will start as "pending" and moderation fields will be added then.
+ */
+export const jokes = pgTable(
+  "jokes",
+  {
+    id: text("id").primaryKey(),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id),
+    text: text("text").notNull(),
+    /** Lowercase, punctuation removed, whitespace collapsed (M5 duplicates). */
+    normalizedText: text("normalized_text").notNull(),
+    status: text("status").$type<JokeStatus>().notNull().default("approved"),
+    category: text("category"),
+    isBot: boolean("is_bot").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    // Keyset pagination for /jokes: newest first, ties broken by id.
+    index("jokes_status_created_idx").on(
+      table.status,
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+    // Profile lists and the per-member post rate limit.
+    index("jokes_author_created_idx").on(
+      table.authorId,
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+  ],
+);
+
+export type Joke = typeof jokes.$inferSelect;
+export type NewJoke = typeof jokes.$inferInsert;

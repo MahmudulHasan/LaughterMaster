@@ -1,6 +1,6 @@
 # LaughterMaster: Build Plan
 
-> Built from [SPEC.md](SPEC.md) v1.5. Each milestone is a small vertical slice.
+> Built from [SPEC.md](SPEC.md) v1.6. Each milestone is a small vertical slice.
 > **Every milestone ends with:** `npm run check` green → spec review (`review-against-spec` skill) → commit → tick the boxes here.
 > The "Course practice" line notes which SDLC skill each milestone exercises.
 
@@ -11,7 +11,7 @@
 | M0 Foundations | – | Done |
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
-| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Not started |
+| M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Done |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
@@ -61,20 +61,20 @@
 
 ## M3: Post & view jokes (US-4, US-5, US-6, US-7, US-18)
 **Course practice:** test-first from acceptance criteria.
-- [ ] `Joke` table + status field; jokes are auto-approved for now (moderation is added in M5, still local-only)
-- [ ] Post form: 10–500 characters after trimming, counted as Unicode graphemes (any language), with validation errors
-- [ ] Limit: 10 posts per member per 24h, with a "try again at …" message
-- [ ] `/joke/[id]` page; 404 page for unknown, deleted, or hidden jokes
-- [ ] Author can delete their own joke with a confirmation step
-- [ ] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
-- [ ] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
-- [ ] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position
-- [ ] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; 404 for unknown members
-- [ ] Owner's view of their own profile shows their pending jokes marked "Under review"
-- [ ] Author names everywhere link to their profile
-- [ ] Test: profile and list responses never include an email or vote counts
+- [x] `Joke` table + status field; jokes are auto-approved for now (moderation is added in M5, still local-only)
+- [x] Post form: 10–500 characters after trimming, counted as Unicode graphemes (any language), with validation errors
+- [x] Limit: 10 posts per member per 24h, with a "try again at …" message
+- [x] `/joke/[id]` page; 404 page for unknown, deleted, or hidden jokes
+- [x] Author can delete their own joke with a confirmation step
+- [x] Cursor-based list API (`?cursor=` → 20 jokes + next cursor), with tests for no duplicates or gaps when new jokes arrive mid-scroll, and for the last batch
+- [x] Shared lazy-list component: first batch server-rendered, auto-load near the end, Load more button fallback, skeletons, live-region announcements, Retry on error, end message
+- [x] `/jokes` All jokes page using the lazy list; "All jokes" link in the header; Back from a joke restores the list and scroll position
+- [x] `/u/[id]` profile: header (name, avatar, join month, joke count) + lazy list of the member's approved jokes; 404 for unknown members
+- [x] Owner's view of their own profile shows their pending jokes marked "Under review"
+- [x] Author names everywhere link to their profile
+- [x] Test: profile and list responses never include an email or vote counts
 
-**Exit:** US-4 through US-7 and US-18 pass (excluding the moderation and ban parts, which land in M5 and M6).
+**Exit:** US-4 through US-7 and US-18 pass, excluding moderation (M5), bans (M6), and the owner's `/me` and Edit name links (M4, M6).
 
 ## M4: Voting & top 10 (US-8, US-9, US-10)
 **Course practice:** specifying and testing tricky business logic.
@@ -84,7 +84,8 @@
 - [ ] Ranking function: score, tie-breaks, 24h window, and 7-day fill under "From this week". Unit-tested with fixed clocks
 - [ ] Home page top 10 with ranks and an empty state; cached for 60s
 - [ ] `/me` page with private counts per joke
-- [ ] Seed script with demo users and jokes for local testing
+- [ ] Owner's profile links to `/me` (US-18, deferred from M3 because the page didn't exist)
+- [x] Seed script with demo users and jokes for local testing (`npm run db:seed`, built during M3)
 
 **Exit:** US-8 through US-10 pass; ranking has table-driven tests covering ties and boundaries.
 
@@ -108,6 +109,7 @@
 - [ ] `/admin` queue (404 for non-admins): restore, remove, ban
 - [ ] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
 - [ ] Display name change (US-3)
+- [ ] Owner's profile shows an "Edit name" link (US-18, deferred from M3)
 - [ ] Session shows the new name right after a rename (today the name is copied into the sign-in token, so it stays stale until the next sign-in)
 
 **Exit:** US-15, US-16, and US-3 pass.
@@ -136,7 +138,9 @@
 - [ ] `/security-review` and `review-against-spec` on the whole app
 - [ ] Create the Google OAuth client (Google Cloud Console) with local and production redirect URLs; add the ID and secret to `.env.local` and Vercel (D15)
 - [ ] Verify the real Google sign-in end to end, locally and deployed
+- [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
 - [ ] Vercel + hosted Postgres; secrets set in Vercel
+- [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)
 - [ ] Verify preview cards on real social platforms
 - [ ] README with setup, architecture, and a course retrospective
 

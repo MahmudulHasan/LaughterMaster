@@ -1,12 +1,15 @@
 // @vitest-environment node
-import { mkdtemp, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdtemp, open, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { createDb, type Db } from "./client";
+import { createDb, openDb, type Db } from "./client";
+import { DatabaseDamagedError, DatabaseLockedError } from "./errors";
+import { lockFileFor } from "./lock";
 import { runMigrations } from "./migrate";
 
 describe("database", () => {
@@ -24,7 +27,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 2 }]);
+    expect(rows.rows).toEqual([{ count: 3 }]);
   });
 
   it("is idempotent when migrations run twice", async () => {
@@ -35,7 +38,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 2 }]);
+    expect(rows.rows).toEqual([{ count: 3 }]);
   });
 
   // Regression: PGlite only creates the last folder, so a fresh clone without
@@ -58,5 +61,47 @@ describe("database", () => {
     db = createDb({ inMemory: true });
     const rows = await db.execute(sql`select 1 as one`);
     expect(rows.rows).toEqual([{ one: 1 }]);
+  });
+
+  describe("on disk", () => {
+    let root: string;
+    beforeEach(async () => {
+      root = await mkdtemp(join(tmpdir(), "lm-db-"));
+    });
+    afterEach(async () => {
+      await rm(root, { recursive: true, force: true });
+    });
+
+    it("refuses a second open of the same folder until the first closes", async () => {
+      const dataDir = join(root, "pglite");
+      db = await openDb({ dataDir });
+      expect(existsSync(lockFileFor(dataDir))).toBe(true);
+      expect(() => createDb({ dataDir })).toThrow(DatabaseLockedError);
+
+      await db.$client.close();
+      db = undefined;
+      expect(existsSync(lockFileFor(dataDir))).toBe(false);
+
+      db = await openDb({ dataDir });
+      const rows = await db.execute(sql`select 1 as one`);
+      expect(rows.rows).toEqual([{ one: 1 }]);
+    });
+
+    it("reports a damaged folder with an actionable error and frees it", async () => {
+      const dataDir = join(root, "pglite");
+      const first = await openDb({ dataDir });
+      await first.$client.close();
+      // Wreck pg_control, as an overlapping second process effectively does.
+      const file = await open(join(dataDir, "global", "pg_control"), "r+");
+      await file.write(Buffer.alloc(512), 0, 512, 0);
+      await file.close();
+
+      const error = await openDb({ dataDir }).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(DatabaseDamagedError);
+      expect((error as Error).message).toContain(
+        `Local database at ${dataDir} is damaged`,
+      );
+      expect(existsSync(lockFileFor(dataDir))).toBe(false);
+    });
   });
 });

@@ -7,25 +7,11 @@ import {
   toProviderProfile,
   type AuthDeps,
 } from "@/server/auth/session";
-import { getDb } from "@/server/db/client";
-import { runMigrations } from "@/server/db/migrate";
+import { getReadyDb } from "@/server/db/ready";
 import { upsertUserFromProvider } from "@/server/users";
 
-let migrated: Promise<void> | undefined;
-
-/** The shared DB, migrated once before its first use by sign-in. */
-async function getMigratedDb() {
-  const db = getDb();
-  migrated ??= runMigrations(db).catch((error: unknown) => {
-    migrated = undefined; // let the next sign-in retry
-    throw error;
-  });
-  await migrated;
-  return db;
-}
-
 const deps: AuthDeps = {
-  getDb: getMigratedDb,
+  getDb: getReadyDb,
   upsertUser: upsertUserFromProvider,
 };
 
