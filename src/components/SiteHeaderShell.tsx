@@ -8,7 +8,8 @@ import type { ReactNode } from "react";
  */
 export function SiteHeaderShell({ actions }: { actions?: ReactNode }) {
   return (
-    <header className="border-b border-black/10 bg-white">
+    // Sticky: the page scrolls underneath while the header stays in place.
+    <header className="sticky top-0 z-30 border-b border-black/10 bg-white">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link
           href="/"

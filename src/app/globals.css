@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* The header is sticky, so keep focused or scrolled-to elements below it
+   (it wraps to two rows on narrow screens). */
+html {
+  scroll-padding-top: 8rem;
+}
+
 body {
   background: #f5f6f8;
   color: #15161a;
