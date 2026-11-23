@@ -10,6 +10,9 @@ import type { ProfileView } from "@/server/jokes/types";
 import ProfileNotFound from "./not-found";
 import { generateMetadata } from "./page";
 
+vi.mock("@/server/jokes/votes", () => ({
+  withMyVotes: async (_db: unknown, _viewer: unknown, list: unknown) => list,
+}));
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/auth/actions", () => ({ signOutAction: vi.fn() }));
 vi.mock("next/navigation", () => ({

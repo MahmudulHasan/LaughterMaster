@@ -12,7 +12,7 @@
 | M1 Scaffold & CI | – | Done |
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Done |
-| M4 Voting & top 10 | US-8, US-9, US-10 | Not started |
+| M4 Voting & top 10 | US-8, US-9, US-10 | Done |
 | M5 Claude moderation | US-11, US-12, US-13 | Not started |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
 | M7 Sharing | US-17 | Not started |
@@ -78,13 +78,13 @@
 
 ## M4: Voting & top 10 (US-8, US-9, US-10)
 **Course practice:** specifying and testing tricky business logic.
-- [ ] `Vote` table, unique per (joke, user)
-- [ ] Like/dislike toggling (add, switch, remove), with `aria-pressed`
-- [ ] Self-vote blocked in the UI and with a 403 from the API
-- [ ] Ranking function: score, tie-breaks, 24h window, and 7-day fill under "From this week". Unit-tested with fixed clocks
-- [ ] Home page top 10 with ranks and an empty state; cached for 60s
-- [ ] `/me` page with private counts per joke
-- [ ] Owner's profile links to `/me` (US-18, deferred from M3 because the page didn't exist)
+- [x] `Vote` table, unique per (joke, user)
+- [x] Like/dislike toggling (add, switch, remove), with `aria-pressed`
+- [x] Self-vote blocked in the UI and with a 403 from `POST /api/jokes/[id]/vote`
+- [x] Ranking function: score, tie-breaks, 24h window, and 7-day fill under "From this week". Unit-tested with fixed clocks
+- [x] Home page top 10 with ranks and an empty state (computed per request, not cached; the spec allows up to 60s staleness, so add caching in M9 if needed)
+- [x] `/me` page with private counts per joke
+- [x] Owner's profile links to `/me` (US-18, deferred from M3 because the page didn't exist)
 - [x] Seed script with demo users and jokes for local testing (`npm run db:seed`, built during M3)
 
 **Exit:** US-8 through US-10 pass; ranking has table-driven tests covering ties and boundaries.
@@ -140,6 +140,7 @@
 - [ ] Verify the real Google sign-in end to end, locally and deployed
 - [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
 - [ ] Vercel + hosted Postgres; secrets set in Vercel
+- [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
 - [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)
 - [ ] Verify preview cards on real social platforms
 - [ ] README with setup, architecture, and a course retrospective

@@ -5,6 +5,8 @@ import { AuthorLink } from "@/components/jokes/AuthorLink";
 import { CategoryChip } from "@/components/jokes/CategoryChip";
 import { RelativeTime } from "@/components/jokes/RelativeTime";
 import { UnderReviewChip } from "@/components/jokes/UnderReviewChip";
+import { VoteButtons, type Voter } from "@/components/votes/VoteButtons";
+import type { SignInOptions } from "@/server/auth/types";
 import type { JokeView } from "@/server/jokes/types";
 
 import { DeleteJokeButton } from "./DeleteJokeButton";
@@ -13,10 +15,12 @@ export type JokeDetailProps = {
   joke: JokeView;
   /** True when the signed-in viewer wrote this joke. */
   isAuthor: boolean;
+  /** Like/Dislike (US-8); omitted for jokes that can't be voted on. */
+  votes?: { voter: Voter; signInOptions: SignInOptions };
 };
 
 /** The big single-joke layout of `/joke/<id>` (US-6). */
-export function JokeDetail({ joke, isAuthor }: JokeDetailProps) {
+export function JokeDetail({ joke, isAuthor, votes }: JokeDetailProps) {
   const pending = joke.status === "pending";
   return (
     <>
@@ -58,10 +62,20 @@ export function JokeDetail({ joke, isAuthor }: JokeDetailProps) {
           <span className="text-sm text-black/60">
             <RelativeTime iso={joke.createdAt} prefix="Posted " />
           </span>
-          {/* M4 (US-8/9): vote buttons go here. M7 (US-15): share controls. */}
+          {/* M7 (US-17): share controls go here. */}
           <div data-slot="joke-actions" className="ml-auto flex gap-2">
             {isAuthor && <DeleteJokeButton jokeId={joke.id} />}
           </div>
+          {votes && joke.status === "approved" && (
+            <div className="w-full pt-2">
+              <VoteButtons
+                jokeId={joke.id}
+                myVote={joke.myVote}
+                voter={votes.voter}
+                signInOptions={votes.signInOptions}
+              />
+            </div>
+          )}
         </footer>
       </article>
     </>

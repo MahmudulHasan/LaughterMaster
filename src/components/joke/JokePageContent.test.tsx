@@ -7,6 +7,9 @@ import type { JokeView } from "@/server/jokes/types";
 
 import { JokePageContent } from "./JokePageContent";
 
+vi.mock("@/server/jokes/votes", () => ({
+  withMyVotes: async (_db: unknown, _viewer: unknown, list: unknown) => list,
+}));
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 const db = { fake: "db" };
 vi.mock("@/server/db/ready", () => ({ getReadyDb: async () => db }));

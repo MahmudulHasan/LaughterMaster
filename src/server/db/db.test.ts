@@ -27,7 +27,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 3 }]);
+    expect(rows.rows).toEqual([{ count: 4 }]);
   });
 
   it("is idempotent when migrations run twice", async () => {
@@ -38,7 +38,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 3 }]);
+    expect(rows.rows).toEqual([{ count: 4 }]);
   });
 
   // Regression: PGlite only creates the last folder, so a fresh clone without

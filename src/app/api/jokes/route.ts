@@ -1,8 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { connection, NextResponse, type NextRequest } from "next/server";
 
+import { auth } from "@/auth";
 import { getReadyDb } from "@/server/db/ready";
 import { listJokes } from "@/server/jokes/queries";
 import type { JokePage } from "@/server/jokes/types";
+import { withMyVotes } from "@/server/jokes/votes";
 
 import { NO_STORE, readCursor } from "./cursorParam";
 
@@ -16,6 +18,13 @@ export async function GET(request: NextRequest) {
     );
   }
   const db = await getReadyDb();
-  const page: JokePage = await listJokes(db, { cursor: parsed.cursor });
+  const listed = await listJokes(db, { cursor: parsed.cursor });
+  // See CLAUDE.md: auth() must come after connection() with cacheComponents.
+  await connection();
+  const session = await auth();
+  const page: JokePage = {
+    ...listed,
+    jokes: await withMyVotes(db, session?.user?.id ?? null, listed.jokes),
+  };
   return NextResponse.json(page, { headers: NO_STORE });
 }

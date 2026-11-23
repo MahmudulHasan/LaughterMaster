@@ -187,6 +187,27 @@ const JOKES: ReadonlyArray<Omit<SeedJoke, "id">> = [
     hoursAgo: 140,
     text: 'My running app says I\'ve burned 300 calories. My snack drawer says, "Welcome back." 🍪',
   },
+  // Bangla (বাংলা) jokes, added on request.
+  {
+    authorId: ADMIN,
+    hoursAgo: 6,
+    text: "আমার অ্যালার্ম ঘড়ি আর আমি একটা চুক্তি করেছি: ও রোজ সকালে বাজবে, আর আমি রোজ সকালে শুনব না।",
+  },
+  {
+    authorId: MINA,
+    hoursAgo: 28,
+    text: "ডাক্তার: আপনি কি রোজ হাঁটেন?\nরোগী: জি, ফ্রিজ পর্যন্ত। দিনে দশবার।",
+  },
+  {
+    authorId: PRIYA,
+    hoursAgo: 60,
+    text: "শিক্ষক: বলো তো, পৃথিবী গোল কেন?\nছাত্র: স্যার, চারকোনা হলে কোণায় দাঁড়ানো মানুষগুলো তো পড়ে যেত!",
+  },
+  {
+    authorId: ADMIN,
+    hoursAgo: 113,
+    text: "বাবা: পরীক্ষায় এত কম নম্বর কেন?\nছেলে: প্রশ্নগুলো সব সিলেবাসের বাইরে ছিল।\nবাবা: কোন সিলেবাস?\nছেলে: আমি যেটুকু পড়েছিলাম!",
+  },
 ];
 
 export const SEED_JOKES: readonly SeedJoke[] = JOKES.map((joke, index) => ({

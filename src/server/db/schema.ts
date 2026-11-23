@@ -1,10 +1,14 @@
 // Drizzle schema for LaughterMaster, following the data model in SPEC.md §6.
 // After changing a table, run `npm run db:generate` to create a migration.
 
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   pgTable,
+  primaryKey,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -86,3 +90,31 @@ export const jokes = pgTable(
 
 export type Joke = typeof jokes.$inferSelect;
 export type NewJoke = typeof jokes.$inferInsert;
+
+/** One vote per member per joke (US-8): like = 1, dislike = -1. */
+export const votes = pgTable(
+  "votes",
+  {
+    jokeId: text("joke_id")
+      .notNull()
+      .references(() => jokes.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    value: smallint("value").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.jokeId, table.userId] }),
+    check("votes_value_check", sql`${table.value} in (1, -1)`),
+    // Ranking aggregates votes per joke.
+    index("votes_joke_idx").on(table.jokeId),
+  ],
+);
+
+export type Vote = typeof votes.$inferSelect;

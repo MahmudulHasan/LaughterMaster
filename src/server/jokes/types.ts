@@ -25,7 +25,35 @@ export type JokeView = {
   isBot: boolean;
   /** Assigned by Claude in M5; null until then. */
   category: string | null;
+  /**
+   * The signed-in viewer's own vote (US-8), when the caller attached it.
+   * Never anyone else's vote, and never counts (intent #5).
+   */
+  myVote?: VoteValue | null;
 };
+
+/** Like = 1, dislike = -1 (US-8). */
+export type VoteValue = 1 | -1;
+
+export type VoteError = "not_signed_in" | "not_found" | "own_joke";
+
+export type VoteResult =
+  { ok: true; myVote: VoteValue | null } | { ok: false; error: VoteError };
+
+/** One entry in the home page ranking (US-10). */
+export type RankedJoke = JokeView & { rank: number };
+
+/** The home page: today's ranked jokes, then the "From this week" fill. */
+export type TopJokes = { today: RankedJoke[]; week: RankedJoke[] };
+
+/** A row on the author's private "My jokes" page (US-9). */
+export type MyJokeStats = JokeView & {
+  likes: number;
+  dislikes: number;
+  score: number;
+};
+
+export const TOP_JOKES_SIZE = 10;
 
 /** One batch of a lazily loaded list. `nextCursor` is null at the end. */
 export type JokePage = {

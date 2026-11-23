@@ -10,7 +10,9 @@ import {
 } from "react";
 
 import { primaryButton, secondaryButton } from "@/components/buttonStyles";
-import type { JokePage, JokeView } from "@/server/jokes/types";
+import { VoteButtons, type Voter } from "@/components/votes/VoteButtons";
+import type { SignInOptions } from "@/server/auth/types";
+import type { JokePage, JokeView, VoteValue } from "@/server/jokes/types";
 
 import { JokeCard } from "./JokeCard";
 
@@ -27,7 +29,17 @@ export type LazyJokeListProps = {
   storageKey: string;
   /** Shown instead of the list when the first batch is empty. */
   emptyState?: ReactNode;
+  /**
+   * Show Like/Dislike on approved jokes (US-8). `viewerId` is the signed-in
+   * member (null for visitors); batches from `endpoint` carry `myVote`.
+   */
+  votes?: { viewerId: string | null; signInOptions: SignInOptions };
 };
+
+export function voterFor(joke: JokeView, viewerId: string | null): Voter {
+  if (!viewerId) return "visitor";
+  return joke.author.id === viewerId ? "author" : "member";
+}
 
 type Status = "idle" | "loading" | "error";
 
@@ -290,6 +302,7 @@ export function LazyJokeList({
   endpoint,
   storageKey,
   emptyState,
+  votes,
 }: LazyJokeListProps) {
   const [jokes, setJokes] = useState<JokeView[]>(initialPage.jokes);
   const [nextCursor, setNextCursor] = useState(initialPage.nextCursor);
@@ -471,7 +484,26 @@ export function LazyJokeList({
       <ul className="flex flex-col gap-4">
         {jokes.map((joke) => (
           <li key={joke.id}>
-            <JokeCard joke={joke} />
+            <JokeCard
+              joke={joke}
+              actions={
+                votes && joke.status === "approved" ? (
+                  <VoteButtons
+                    jokeId={joke.id}
+                    myVote={joke.myVote}
+                    voter={voterFor(joke, votes.viewerId)}
+                    signInOptions={votes.signInOptions}
+                    onVote={(myVote: VoteValue | null) =>
+                      setJokes((list) =>
+                        list.map((j) =>
+                          j.id === joke.id ? { ...j, myVote } : j,
+                        ),
+                      )
+                    }
+                  />
+                ) : undefined
+              }
+            />
           </li>
         ))}
       </ul>

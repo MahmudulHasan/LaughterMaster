@@ -62,7 +62,7 @@ const viewColumns = {
   authorAvatar: users.avatarUrl,
 };
 
-type ViewRow = {
+export type ViewRow = {
   id: string;
   text: string;
   status: JokeStatus;
@@ -75,7 +75,7 @@ type ViewRow = {
   authorAvatar: string | null;
 };
 
-function toView(row: ViewRow): JokeView {
+export function toView(row: ViewRow): JokeView {
   const author: PublicUser = {
     id: row.authorId,
     displayName: row.authorName,
@@ -92,8 +92,8 @@ function toView(row: ViewRow): JokeView {
   };
 }
 
-/** Jokes joined to their authors, hiding banned authors (US-16). */
-function selectViews(db: Db) {
+/** Jokes joined to their authors (public columns only). Callers filter banned authors. */
+export function selectViews(db: Db) {
   return db
     .select(viewColumns)
     .from(jokes)

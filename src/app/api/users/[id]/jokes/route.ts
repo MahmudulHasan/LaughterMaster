@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { getReadyDb } from "@/server/db/ready";
 import { getProfile, listUserJokes } from "@/server/jokes/queries";
 import type { JokePage } from "@/server/jokes/types";
+import { withMyVotes } from "@/server/jokes/votes";
 
 /**
  * GET /api/users/<id>/jokes?cursor= — the next batch of a member's jokes
@@ -35,10 +36,15 @@ export async function GET(
   // See CLAUDE.md: auth() must come after connection() with cacheComponents.
   await connection();
   const session = await auth();
-  const page: JokePage = await listUserJokes(db, {
+  const viewerId = session?.user?.id ?? null;
+  const listed = await listUserJokes(db, {
     userId: id,
-    viewerId: session?.user?.id ?? null,
+    viewerId,
     cursor: parsed.cursor,
   });
+  const page: JokePage = {
+    ...listed,
+    jokes: await withMyVotes(db, viewerId, listed.jokes),
+  };
   return NextResponse.json(page, { headers: NO_STORE });
 }

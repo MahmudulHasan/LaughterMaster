@@ -12,8 +12,8 @@ import { buildJokeRows, SEED_JOKES, SEED_USERS } from "./seed-data";
 const DAY_HOURS = 24;
 
 describe("seed data", () => {
-  it("has about 32 jokes with unique, deterministic ids", () => {
-    expect(SEED_JOKES.length).toBe(32);
+  it("has 36 jokes with unique, deterministic ids", () => {
+    expect(SEED_JOKES.length).toBe(36);
     const ids = SEED_JOKES.map((joke) => joke.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id).toMatch(/^seed-\d{2}$/);
@@ -71,6 +71,7 @@ describe("seed data", () => {
     expect(texts.some((t) => /\p{Extended_Pictographic}/u.test(t))).toBe(true);
     expect(texts.some((t) => /\p{Script=Hangul}/u.test(t))).toBe(true);
     expect(texts.some((t) => /\p{Script=Devanagari}/u.test(t))).toBe(true);
+    expect(texts.some((t) => /\p{Script=Bengali}/u.test(t))).toBe(true);
     expect(texts.some((t) => /[¿ñá]/u.test(t))).toBe(true);
   });
 

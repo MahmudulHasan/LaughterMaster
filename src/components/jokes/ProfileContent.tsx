@@ -1,10 +1,15 @@
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
+import Link from "next/link";
+
 import { auth } from "@/auth";
+import { secondaryButton } from "@/components/buttonStyles";
 import { Avatar } from "@/components/UserMenu";
+import { getSignInOptions } from "@/server/auth/providers";
 import { getReadyDb } from "@/server/db/ready";
 import { getProfile, listUserJokes } from "@/server/jokes/queries";
+import { withMyVotes } from "@/server/jokes/votes";
 
 import { LazyJokeList } from "./LazyJokeList";
 
@@ -35,7 +40,11 @@ export async function ProfileContent({ params }: { params: ProfileParams }) {
   const session = await auth();
   const viewerId = session?.user?.id ?? null;
   const isOwner = viewerId === profile.user.id;
-  const page = await listUserJokes(db, { userId: id, viewerId });
+  const listed = await listUserJokes(db, { userId: id, viewerId });
+  const page = {
+    ...listed,
+    jokes: await withMyVotes(db, viewerId, listed.jokes),
+  };
   const name = profile.user.displayName;
 
   return (
@@ -54,10 +63,15 @@ export async function ProfileContent({ params }: { params: ProfileParams }) {
       </section>
 
       {isOwner && (
-        <p className="mt-4 rounded-2xl bg-[#EEF0F4] px-4 py-3 text-sm text-[#3A3D46]">
-          You&apos;re viewing your own profile. Jokes under review are only
-          visible to you.
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#EEF0F4] px-4 py-3 text-sm text-[#3A3D46]">
+          <p>
+            You&apos;re viewing your own profile. Jokes under review are only
+            visible to you.
+          </p>
+          <Link href="/me" className={secondaryButton}>
+            My stats
+          </Link>
+        </div>
       )}
 
       <h2 className="mt-8 mb-4 text-xl font-semibold">Jokes</h2>
@@ -65,6 +79,7 @@ export async function ProfileContent({ params }: { params: ProfileParams }) {
         initialPage={page}
         endpoint={`/api/users/${encodeURIComponent(id)}/jokes`}
         storageKey={`/u/${id}${isOwner ? "#owner" : ""}`}
+        votes={{ viewerId, signInOptions: getSignInOptions() }}
         emptyState={
           <p className="rounded-2xl border border-[#E3E5EA] bg-white p-6 text-lg">
             {name} hasn&apos;t posted any jokes yet.

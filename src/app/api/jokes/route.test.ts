@@ -8,6 +8,9 @@ import type { JokePage, ProfileView } from "@/server/jokes/types";
 import { GET as getUserJokes } from "../users/[id]/jokes/route";
 import { GET as getJokes } from "./route";
 
+vi.mock("@/server/jokes/votes", () => ({
+  withMyVotes: async (_db: unknown, _viewer: unknown, list: unknown) => list,
+}));
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   connection: async () => {},
