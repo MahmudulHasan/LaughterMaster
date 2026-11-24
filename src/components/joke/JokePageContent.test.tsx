@@ -14,6 +14,8 @@ vi.mock("@/auth", () => ({ auth: vi.fn() }));
 const db = { fake: "db" };
 vi.mock("@/server/db/ready", () => ({ getReadyDb: async () => db }));
 vi.mock("@/server/jokes/queries", () => ({ getJokeForViewer: vi.fn() }));
+vi.mock("@/server/admin/queries", () => ({ hasReported: async () => false }));
+vi.mock("@/server/admin/actions", () => ({ reportJokeAction: vi.fn() }));
 vi.mock("@/server/auth/admin", () => ({
   isAdmin: (id: string | null) => id === "u-admin",
 }));

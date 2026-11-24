@@ -18,7 +18,13 @@ vi.mock("@/server/auth/actions", () => ({
 }));
 vi.mock("@/server/db/ready", () => ({ getReadyDb: vi.fn(async () => "db") }));
 vi.mock("@/server/jokes/votes", () => ({ getMyJokeStats: vi.fn() }));
-vi.mock("next/navigation", () => ({ usePathname: () => "/me" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/me",
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+vi.mock("@/server/profile/actions", () => ({
+  updateDisplayNameAction: vi.fn(),
+}));
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 const mockStats = getMyJokeStats as unknown as ReturnType<typeof vi.fn>;
@@ -42,7 +48,7 @@ beforeEach(() => {
 
 describe("MyJokes (US-9)", () => {
   it("shows the signed-in author's likes, dislikes and score", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "mina" } });
+    mockAuth.mockResolvedValue({ user: { id: "mina", name: "Mina Park" } });
     mockStats.mockResolvedValue([joke]);
     render(await MyJokes());
     expect(mockStats).toHaveBeenCalledWith("db", "mina");
@@ -66,7 +72,7 @@ describe("MyJokes (US-9)", () => {
   });
 
   it("has an empty state with a link to post", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "mina" } });
+    mockAuth.mockResolvedValue({ user: { id: "mina", name: "Mina Park" } });
     mockStats.mockResolvedValue([]);
     render(await MyJokes());
     expect(screen.getByRole("link", { name: "Post a joke" })).toHaveAttribute(

@@ -14,7 +14,7 @@
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Done |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Done |
 | M5 Claude moderation | US-11, US-12, US-13 | Done |
-| M6 Reports & admin | US-15, US-16, US-3 | Not started |
+| M6 Reports & admin | US-15, US-16, US-3 | Done |
 | M7 Sharing | US-17 | Not started |
 | M8 AI joke of the day | US-14 | Not started |
 | M9 Ship | NFRs | Not started |
@@ -105,14 +105,14 @@
 
 ## M6: Reports & admin (US-15, US-16, US-3)
 **Course practice:** designing for misuse.
-- [ ] `Report` table, unique per (joke, user); members can't report their own jokes
-- [ ] 5 reports → hidden
+- [x] `Report` table, unique per (joke, user); members can't report their own jokes; 20 reports per member per 24h
+- [x] 5 reports → hidden
 - [x] Admins can delete any joke from its page (status `removed`; pulled forward from the queue at the author's request)
-- [ ] `/admin` queue (404 for non-admins): restore, remove, ban
-- [ ] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
-- [ ] Display name change (US-3) — new names go through Claude moderation (moved from M5)
-- [ ] Owner's profile shows an "Edit name" link (US-18, deferred from M3)
-- [ ] Session shows the new name right after a rename (today the name is copied into the sign-in token, so it stays stale until the next sign-in)
+- [x] `/admin` queue (404 for non-admins): restore (clears reports), remove, ban (never an admin); Admin link in the header
+- [x] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
+- [x] Display name change (US-3) — new names go through Claude moderation (moved from M5)
+- [x] Owner's profile shows an "Edit name" link to the name form on `/me` (US-18, deferred from M3)
+- [x] Session shows the new name right after a rename (re-read from the database on session update), and later sign-ins keep a chosen name
 
 **Exit:** US-15, US-16, and US-3 pass.
 

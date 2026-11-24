@@ -6,7 +6,12 @@ import type { ProviderProfile } from "./auth/types";
 import { createDb, type Db } from "./db/client";
 import { runMigrations } from "./db/migrate";
 import { users } from "./db/schema";
-import { getPublicUser, upsertUserFromProvider } from "./users";
+import {
+  getPublicUser,
+  setDisplayName,
+  upsertUserFromProvider,
+  validateDisplayName,
+} from "./users";
 
 const profile: ProviderProfile = {
   provider: "google",
@@ -93,5 +98,43 @@ describe("users", () => {
 
   it("returns null for an unknown id", async () => {
     expect(await getPublicUser(db, "nope")).toBeNull();
+  });
+});
+
+describe("display names (US-3)", () => {
+  it("validates length and characters in any script", () => {
+    expect(validateDisplayName("  Mina   Park ")).toEqual({
+      ok: true,
+      name: "Mina Park",
+    });
+    expect(validateDisplayName("মিনা_পার্ক-1")).toMatchObject({ ok: true });
+    expect(validateDisplayName("M")).toEqual({ ok: false, error: "too_short" });
+    expect(validateDisplayName("x".repeat(31))).toEqual({
+      ok: false,
+      error: "too_long",
+    });
+    expect(validateDisplayName("Mina<script>")).toEqual({
+      ok: false,
+      error: "invalid_characters",
+    });
+    expect(validateDisplayName("mina@example.com")).toEqual({
+      ok: false,
+      error: "invalid_characters",
+    });
+  });
+
+  it("keeps a chosen name when the member signs in again", async () => {
+    const db = createDb({ inMemory: true });
+    await runMigrations(db);
+    const created = await upsertUserFromProvider(db, profile);
+    expect(
+      await setDisplayName(db, created.id, "Mina the Great"),
+    ).toMatchObject({ displayName: "Mina the Great" });
+    const again = await upsertUserFromProvider(db, {
+      ...profile,
+      name: "Mina From Google",
+    });
+    expect(again.displayName).toBe("Mina the Great");
+    await db.$client.close();
   });
 });

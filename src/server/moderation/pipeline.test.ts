@@ -31,7 +31,10 @@ function fakeModerator(outcome: ModerationOutcome) {
       candidates: DuplicateCandidate[];
     }) => Promise<ModerationOutcome>
   >(async () => outcome);
-  return { moderator: { moderateJoke } as Moderator, moderateJoke };
+  return {
+    moderator: { moderateJoke, moderateDisplayName: vi.fn() } as Moderator,
+    moderateJoke,
+  };
 }
 
 const approve = (category = "Puns" as const): ModerationOutcome => ({

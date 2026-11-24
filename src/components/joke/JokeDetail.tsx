@@ -10,6 +10,7 @@ import type { SignInOptions } from "@/server/auth/types";
 import type { JokeView } from "@/server/jokes/types";
 
 import { DeleteJokeButton } from "./DeleteJokeButton";
+import { ReportButton } from "./ReportButton";
 
 export type JokeDetailProps = {
   joke: JokeView;
@@ -17,6 +18,8 @@ export type JokeDetailProps = {
   isAuthor: boolean;
   /** The viewer is an admin, who may delete anyone's joke (US-16). */
   isAdmin?: boolean;
+  /** Report (US-15); omitted for the author and unpublished jokes. */
+  report?: "visitor" | "member" | "reported";
   /** Like/Dislike (US-8); omitted for jokes that can't be voted on. */
   votes?: { voter: Voter; signInOptions: SignInOptions };
 };
@@ -26,6 +29,7 @@ export function JokeDetail({
   joke,
   isAuthor,
   isAdmin = false,
+  report,
   votes,
 }: JokeDetailProps) {
   const pending = joke.status === "pending";
@@ -89,6 +93,15 @@ export function JokeDetail({
           )}
         </footer>
       </article>
+      {report && votes && joke.status === "approved" && (
+        <div className="mt-4">
+          <ReportButton
+            jokeId={joke.id}
+            state={report}
+            signInOptions={votes.signInOptions}
+          />
+        </div>
+      )}
     </>
   );
 }

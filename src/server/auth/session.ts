@@ -6,7 +6,7 @@ import type { upsertUserFromProvider } from "@/server/users";
 
 import { findDevUser } from "./dev-users";
 import { DEV_PROVIDER_ID } from "./providers";
-import type { ProviderProfile, SessionUser } from "./types";
+import type { ProviderProfile, PublicUser, SessionUser } from "./types";
 
 declare module "next-auth" {
   // Narrow the session to exactly SessionUser: id, name, image. No email.
@@ -25,6 +25,8 @@ declare module "next-auth/jwt" {
 export type AuthDeps = {
   getDb: () => Promise<Db>;
   upsertUser: typeof upsertUserFromProvider;
+  /** Re-reads the member after a rename (US-3); null if unknown. */
+  getUser: (db: Db, id: string) => Promise<PublicUser | null>;
 };
 
 /**
@@ -79,9 +81,10 @@ export async function jwtCallback(
     user?: User | null;
     account?: Account | null;
     profile?: Profile;
+    trigger?: "signIn" | "signUp" | "update";
   },
 ): Promise<JWT | null> {
-  const { token, user, account, profile } = params;
+  const { token, user, account, profile, trigger } = params;
   if (account && user) {
     const mapped = toProviderProfile(account, user, profile);
     if (!mapped) return null;
@@ -100,7 +103,17 @@ export async function jwtCallback(
   }
   // Not a sign-in: keep the token, minus any email. A token without our id
   // is unusable, and returning null clears the session.
-  if (!toSessionUser(token)) return null;
+  const current = toSessionUser(token);
+  if (!current) return null;
+  if (trigger === "update") {
+    // After a rename (US-3). Anything the browser sent with the update is
+    // ignored: the name and photo are re-read from the database.
+    const db = await deps.getDb();
+    const member = await deps.getUser(db, current.id);
+    if (!member) return null;
+    token.name = member.displayName;
+    token.picture = member.avatarUrl;
+  }
   const { email: _email, ...rest } = token;
   void _email;
   return rest;

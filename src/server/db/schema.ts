@@ -28,6 +28,8 @@ export const users = pgTable(
     avatarUrl: text("avatar_url"),
     email: text("email"),
     isBanned: boolean("is_banned").notNull().default(false),
+    /** Set once the member picks their own name (US-3); sign-in won't overwrite it. */
+    nameCustomized: boolean("name_customized").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -131,3 +133,34 @@ export const votes = pgTable(
 );
 
 export type Vote = typeof votes.$inferSelect;
+
+export const REPORT_REASONS = [
+  "Offensive",
+  "Spam",
+  "Plagiarized",
+  "Other",
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+/** One report per member per joke (US-15). */
+export const reports = pgTable(
+  "reports",
+  {
+    jokeId: text("joke_id")
+      .notNull()
+      .references(() => jokes.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    reason: text("reason").$type<ReportReason>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.jokeId, table.userId] }),
+    index("reports_joke_idx").on(table.jokeId),
+    // The 20 reports per member per day limit (SPEC §5).
+    index("reports_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);

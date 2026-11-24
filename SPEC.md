@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.9** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.10** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -52,7 +52,7 @@ As a visitor, I want a clear prompt when I try something that needs an account, 
 
 **US-3 · Display name · S**
 As a member, I want to change my display name, so that I choose how I'm credited.
-- A name must be 2–30 characters. Letters, numbers, spaces, `_`, and `-` are allowed. Claude's moderation applies to names too.
+- A name must be 2–30 characters. Letters, numbers, spaces, `_`, and `-` are allowed. Claude's moderation applies to names too. Letters from any script count. The name form lives on `/me`. A chosen name is kept on later sign-ins, and the header shows it right away. If Claude can't check the name, the old one stays (fail closed).
 
 ### Epic B: Posting jokes
 
@@ -156,13 +156,14 @@ As a visitor, I want a daily AI joke, so that there's always something to laugh 
 As a member, I want to report a joke that slipped through, so that the community can fix moderation misses.
 - Each member can report a joke once, choosing a reason: Offensive, Spam, Plagiarized, or Other.
 - When **5 different members** report a joke, it's **hidden** automatically until an admin reviews it. _(D3)_
-- Members can't report their own jokes.
+- Members can't report their own jokes. Only published jokes can be reported, and each member can send at most 20 reports per 24 hours (§5).
 
 **US-16 · Admin review queue · M**
 As an admin, I want to review hidden and pending jokes, so that I can make the final call.
 - `/admin` is visible only to admins; everyone else gets a 404.
 - It lists hidden and pending jokes with their reports and Claude's decision. For each one I can **Restore** or **Remove**.
-- I can **ban** a member. A banned member can't post, vote, or report, and their existing jokes are hidden.
+- **Restore** clears the joke's reports, so 5 new ones are needed to hide it again.
+- I can **ban** a member. A banned member can't post, vote, or report, and their existing jokes are hidden. Admins can't be banned.
 - On any joke's page I see **Delete (admin)**. After I confirm, the joke is removed everywhere (status `removed`, distinct from an author's `deleted`) and its votes stop counting. Non-admins never see the button, and the server rejects their requests. _(added in v1.9, delivered ahead of the queue)_
 
 ### Epic F: Sharing
@@ -231,6 +232,7 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 
 ## Changelog
 
+- **1.10** (2026-11-25): M6 details: names accept any script, the form is on `/me`, chosen names survive sign-in, and rename fails closed. Only published jokes can be reported. Restore clears reports. Admins can't be banned. Affects M6.
 - **1.9** (2026-11-24): US-16 gains "admins can delete any joke from its page", delivered early at the author's request. The Claude moderation eval was dropped by the author. Affects M5, M6.
 - **1.8** (2026-11-24): Added D17 (moderation is skipped only in local development without an API key; model configurable). Cost NFR updated: one low-effort call per joke, model choice left to the author. Display-name moderation moves to M6 with US-3. Affects M5, M6, M9.
 - **1.7** (2026-11-23): Clarified D8: deleted jokes still count toward the 10-per-24h limit. US-18's owner links to `/me` and Edit name move to M4 and M6 (the pages don't exist yet). Affects M3, M4, M6.

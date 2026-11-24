@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { primaryButton } from "@/components/buttonStyles";
 import { JokeCard } from "@/components/jokes/JokeCard";
 import { SignInButton } from "@/components/SignInButton";
+
+import { DisplayNameForm } from "./DisplayNameForm";
 import { getSignInOptions } from "@/server/auth/providers";
 import { getReadyDb } from "@/server/db/ready";
 import type { MyJokeStats } from "@/server/jokes/types";
@@ -59,25 +61,32 @@ export async function MyJokes() {
 
   const db = await getReadyDb();
   const jokes = await getMyJokeStats(db, userId);
+  const nameForm = <DisplayNameForm currentName={session.user.name} />;
 
   if (jokes.length === 0) {
     return (
-      <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#E3E5EA] bg-white p-6">
-        <p className="text-lg">You haven&apos;t posted any jokes yet.</p>
-        <Link href="/post" className={primaryButton}>
-          Post a joke
-        </Link>
-      </div>
+      <>
+        {nameForm}
+        <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#E3E5EA] bg-white p-6">
+          <p className="text-lg">You haven&apos;t posted any jokes yet.</p>
+          <Link href="/post" className={primaryButton}>
+            Post a joke
+          </Link>
+        </div>
+      </>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-4">
-      {jokes.map((joke) => (
-        <li key={joke.id}>
-          <JokeCard joke={joke} actions={<StatsRow joke={joke} />} />
-        </li>
-      ))}
-    </ul>
+    <>
+      {nameForm}
+      <ul className="flex flex-col gap-4">
+        {jokes.map((joke) => (
+          <li key={joke.id}>
+            <JokeCard joke={joke} actions={<StatsRow joke={joke} />} />
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

@@ -8,14 +8,15 @@ import {
   type AuthDeps,
 } from "@/server/auth/session";
 import { getReadyDb } from "@/server/db/ready";
-import { upsertUserFromProvider } from "@/server/users";
+import { getPublicUser, upsertUserFromProvider } from "@/server/users";
 
 const deps: AuthDeps = {
   getDb: getReadyDb,
   upsertUser: upsertUserFromProvider,
+  getUser: getPublicUser,
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   providers: buildProviders(),
   session: { strategy: "jwt" },
   trustHost: true,

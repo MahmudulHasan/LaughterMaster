@@ -2,9 +2,10 @@ import Link from "next/link";
 import { connection } from "next/server";
 
 import { auth } from "@/auth";
+import { isAdmin } from "@/server/auth/admin";
 import { getSignInOptions } from "@/server/auth/providers";
 
-import { primaryButton, secondaryButton } from "./buttonStyles";
+import { primaryButton, quietButton, secondaryButton } from "./buttonStyles";
 import { SignInButton } from "./SignInButton";
 import { SignInNotice } from "./SignInNotice";
 import { SiteHeaderShell } from "./SiteHeaderShell";
@@ -28,6 +29,11 @@ export async function SiteHeader() {
       <SiteHeaderShell
         actions={
           <>
+            {isAdmin(user.id) && (
+              <Link href="/admin" className={quietButton}>
+                Admin
+              </Link>
+            )}
             <Link href="/post" className={primaryButton}>
               Post a joke
             </Link>

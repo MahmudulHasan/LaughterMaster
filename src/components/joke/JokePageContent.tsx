@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
 import { auth } from "@/auth";
+import { hasReported } from "@/server/admin/queries";
 import { isAdmin } from "@/server/auth/admin";
 import { getSignInOptions } from "@/server/auth/providers";
 import { getReadyDb } from "@/server/db/ready";
@@ -28,11 +29,19 @@ export async function JokePageContent({
   if (!found) notFound();
   const [joke] = await withMyVotes(db, viewerId, [found]);
   const isAuthor = viewerId === found.author.id;
+  const report = isAuthor
+    ? undefined
+    : !viewerId
+      ? ("visitor" as const)
+      : (await hasReported(db, found.id, viewerId))
+        ? ("reported" as const)
+        : ("member" as const);
   return (
     <JokeDetail
       joke={joke ?? found}
       isAuthor={isAuthor}
       isAdmin={isAdmin(viewerId)}
+      report={report}
       votes={{
         voter: !viewerId ? "visitor" : isAuthor ? "author" : "member",
         signInOptions: getSignInOptions(),

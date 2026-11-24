@@ -68,9 +68,14 @@ export async function ProfileContent({ params }: { params: ProfileParams }) {
             You&apos;re viewing your own profile. Jokes under review are only
             visible to you.
           </p>
-          <Link href="/me" className={secondaryButton}>
-            My stats
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/me#name" className={secondaryButton}>
+              Edit name
+            </Link>
+            <Link href="/me" className={secondaryButton}>
+              My stats
+            </Link>
+          </div>
         </div>
       )}
 

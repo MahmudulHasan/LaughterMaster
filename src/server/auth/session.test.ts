@@ -9,16 +9,44 @@ import {
   type AuthDeps,
 } from "./session";
 
-function makeDeps(): AuthDeps & { upsertUser: ReturnType<typeof vi.fn> } {
+function makeDeps(): AuthDeps & {
+  upsertUser: ReturnType<typeof vi.fn>;
+  getUser: ReturnType<typeof vi.fn>;
+} {
   const upsertUser = vi.fn(async (_db: Db, profile: { name: string }) => ({
     id: "db-user-1",
     displayName: profile.name,
     avatarUrl: "https://img.example/a.png",
   }));
-  return { getDb: async () => ({}) as Db, upsertUser };
+  const getUser = vi.fn(async (_db: Db, id: string) =>
+    id === "db-user-1"
+      ? { id, displayName: "Renamed Mina", avatarUrl: null }
+      : null,
+  );
+  return { getDb: async () => ({}) as Db, upsertUser, getUser };
 }
 
 describe("jwtCallback", () => {
+  it("re-reads the name from the database on update, ignoring the browser (US-3)", async () => {
+    const deps = makeDeps();
+    const token = await jwtCallback(deps, {
+      token: { uid: "db-user-1", sub: "db-user-1", name: "Old name" },
+      trigger: "update",
+    });
+    expect(token).toMatchObject({ uid: "db-user-1", name: "Renamed Mina" });
+    expect(deps.getUser).toHaveBeenCalledWith({}, "db-user-1");
+  });
+
+  it("ends the session on update if the member no longer exists", async () => {
+    const deps = makeDeps();
+    expect(
+      await jwtCallback(deps, {
+        token: { uid: "gone", sub: "gone", name: "Ghost" },
+        trigger: "update",
+      }),
+    ).toBeNull();
+  });
+
   it("upserts a Google user and keeps only id, name and picture", async () => {
     const deps = makeDeps();
     const token = await jwtCallback(deps, {
