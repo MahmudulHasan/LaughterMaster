@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes, catches duplicates and posts a daily AI joke.
+LaughterMaster is a public community joke platform: anyone can read jokes, signed-in members post, like and dislike them, and the home page shows the top 10 from the last 24 hours. Claude moderates, categorizes and catches duplicates.
 
 The app is scaffolded (milestone M1): a placeholder home page, test setup, database wiring and CI, but no features yet. Check `PLAN.md` for the current milestone. It is also a learning project for the AI-native SDLC course, so keep changes small and explain trade-offs.
 
@@ -56,11 +56,10 @@ Stack: Next.js App Router + TypeScript (strict) + Tailwind, Auth.js with **Googl
 Cross-cutting rules that span many files:
 - **Joke status lifecycle** drives visibility everywhere: `pending | approved | rejected | hidden | removed | deleted`. Only `approved` jokes are public. The author alone also sees their own `pending` jokes on their profile.
 - **Moderation fails closed** (US-11): one Claude call per submission returns `{decision, reason, category}`. On a timeout or error the joke stays `pending` and a retry job rechecks it. Display names go through the same check.
-- **Ranking** (US-10): eligible = approved, posted in the last rolling 24h, not JokeBot. Score = likes − dislikes; ties go to more total votes, then the earlier post. Fewer than 10 → fill from days 1–7 under "From this week". Cached for 60s.
+- **Ranking** (US-10): eligible = approved, posted in the last rolling 24h, not a bot joke (`is_bot`; none exist since US-14 was dropped). Score = likes − dislikes; ties go to more total votes, then the earlier post. Fewer than 10 → fill from days 1–7 under "From this week". Cached for 60s.
 - **Votes**: one per (joke, user), toggle or switch, no self-votes (API returns 403). Vote counts are never public; only the author sees their own counts, on `/me`.
 - **Lists** (`/jokes`, `/u/[id]`) are lazy-loaded in batches of 20 with **cursor pagination** (not offset), so no duplicates or gaps appear while new jokes arrive. Each has a server-rendered first batch and a Load more fallback.
 - **Auth boundary**: every reading page works logged out. Like, dislike, report and post open a sign-in dialog. Admins are the IDs in the `ADMIN_USER_IDS` env var; `/admin` returns 404 for everyone else.
-- **JokeBot** is a system user whose daily joke goes through normal moderation and gets its own slot, never a top-10 rank.
 
 ## Hard rules
 

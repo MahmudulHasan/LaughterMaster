@@ -25,7 +25,7 @@ _Added later:_ Each person has a **profile** where all of their jokes are shown.
 | 4 | Ranking | **Score = likes − dislikes.** Simple and explainable. Known trade-off: a joke at 1/0 ties one at 51/50. |
 | 5 | Voting rules | A user can **change or undo** their vote. Users **cannot vote on their own jokes**. Like and dislike counts are **not shown publicly** (only the ranking). |
 | 6 | Moderation | **Claude screens every joke on submit** and blocks clear violations (hate, harassment, sexual content, spam). Users can **report** a joke; after N reports it is hidden until an admin reviews it. |
-| 7 | Claude's other jobs | **Auto-categorize** jokes (pun, dad joke, tech, …) for filtering. **Detect duplicates** so reposts can't farm votes. Post one **daily bot joke**, clearly labeled as AI. |
+| 7 | Claude's other jobs | **Auto-categorize** jokes (pun, dad joke, tech, …) for filtering. **Detect duplicates** so reposts can't farm votes. ~~Post one daily bot joke~~ (dropped by the author on 2026-11-25). |
 | 8 | Sharing | **Preview image cards** (Open Graph) so shared links look good on X, WhatsApp, Facebook, etc. This implies each joke has its **own page/URL**. |
 | 9 | Cold start | If fewer than 10 jokes were posted in the last 24h, **fill the rest with the top jokes of the last 7 days**, clearly labeled. |
 | 10 | vs old spec | This **replaces** the old LaughterMaster spec. The random-joke browser and the Claude joke generator are dropped. |

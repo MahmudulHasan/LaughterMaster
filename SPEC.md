@@ -1,12 +1,12 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.11** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.12** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
 ## 1. Product summary
 
-LaughterMaster is a public community where people **post jokes**, **like or dislike** other people's jokes, and **share** their favorites. The home page shows the **top 10 jokes posted in the last 24 hours**, an **All jokes** page lists every joke, loading more as you scroll, and every member has a **profile** listing their jokes. Claude works behind the scenes as a **moderator, categorizer, and duplicate-catcher**, and posts one clearly labeled **AI joke of the day**.
+LaughterMaster is a public community where people **post jokes**, **like or dislike** other people's jokes, and **share** their favorites. The home page shows the **top 10 jokes posted in the last 24 hours**, an **All jokes** page lists every joke, loading more as you scroll, and every member has a **profile** listing their jokes. Claude works behind the scenes as a **moderator, categorizer, and duplicate-catcher**.
 
 **Why it exists:** a real project for practicing every stage of the AI-native SDLC (intent, spec, plan, build, test, review, ship). When learning and polish trade off, learning wins.
 
@@ -17,7 +17,6 @@ LaughterMaster is a public community where people **post jokes**, **like or disl
 | Visitor | Anyone, not logged in | Browse, read jokes, share links |
 | Member | Logged-in user | Everything a visitor can, plus post, vote, report, and delete their own jokes |
 | Admin | Members listed in the `ADMIN_USER_IDS` config | Everything a member can, plus review reported jokes, restore or remove them, and ban members |
-| JokeBot | System account | Posts the daily AI joke |
 
 ## 3. Success criteria (MVP)
 
@@ -84,7 +83,7 @@ As anyone, I want to browse every joke ever posted, so that I can find more than
 - Given there are no more jokes, then automatic loading stops and I see "You've seen every joke" with a "Post the next one" button.
 - Given I open a joke and press Back, then the list returns with the jokes I'd loaded and my scroll position. _(confirmed, see §9)_
 - Given there are no approved jokes, then I see the same empty state as the home page, with a "Post a joke" button.
-- Pending, rejected, hidden, removed, and deleted jokes never appear. The daily AI joke **does** appear, with its AI badge.
+- Pending, rejected, hidden, removed, and deleted jokes never appear.
 - Each entry shows the joke, the author (linked to their profile), the category, the relative post time, and the vote and share controls. No vote counts are shown (intent #5).
 - The header has an "All jokes" link on every page.
 
@@ -97,7 +96,6 @@ As anyone, I want to see a member's profile with all their jokes, so that I can 
 - Given the member doesn't exist or is banned, then I see "This profile isn't available" with HTTP status 404. _Same soft-404 deviation (D16)._
 - **Viewing my own profile:** I see the same public list, plus an "Edit name" link (US-3) and a link to `/me` for my private stats (US-9). My pending jokes appear only to me, marked "Under review". _(confirmed, see §9)_
 - The profile never shows email, vote counts, or what the member has voted on. _(confirmed, see §9)_
-- JokeBot has a profile too, listing all of its daily AI jokes.
 
 ### Epic C: Voting & ranking
 
@@ -115,7 +113,7 @@ As an author, I want to see how my jokes are doing, so that posting feels reward
 
 **US-10 · Top 10 of the day · M**
 As anyone, I want the home page to show the 10 best jokes from the last 24 hours, so that I get the best laughs fast.
-- **Eligible:** approved, not hidden or deleted, **posted within the last rolling 24 hours**, and not posted by JokeBot.
+- **Eligible:** approved, not hidden or deleted, **posted within the last rolling 24 hours**, and not a bot joke (none exist; US-14 was dropped).
 - **Score** = likes − dislikes. **(intent #4)**
 - **Tie-breaks:** (1) more total votes ranks higher, then (2) the earlier post ranks higher. Rewarding the earlier post means copycats can't win ties. _(confirmed, see §9)_
 - **Cold start (intent #9):** if fewer than 10 jokes are eligible, fill the remaining slots with the best jokes posted 1–7 days ago, using the same scoring. They appear under a separate "From this week" heading.
@@ -144,11 +142,8 @@ As the community, I want reposted jokes blocked, so that nobody farms votes with
 - Duplicates are checked within the same language; a translation of an existing joke is not treated as a duplicate.
 - **Near duplicate:** if Claude judges a joke to be the same joke as one of the 20 most similar existing jokes, the post is rejected the same way. The threshold can be tuned later.
 
-**US-14 · AI joke of the day · S**
-As a visitor, I want a daily AI joke, so that there's always something to laugh at.
-- Once a day at 08:00 UTC, JokeBot posts one family-friendly joke. It goes through the same moderation and duplicate checks.
-- It's shown in a separate **"AI joke of the day"** slot above the top 10, with an "AI" badge. **It doesn’t compete in the top 10.** _(confirmed, see §9)_
-- Members can vote on it and share it like any other joke.
+**US-14 · AI joke of the day · Won't** _(dropped by the author, v1.12)_
+~~A daily joke written by Claude and posted by a JokeBot account, shown in its own slot above the top 10.~~ Not built. The `is_bot` column and the top 10's bot exclusion stay, unused.
 
 ### Epic E: Safety & moderation
 
@@ -218,7 +213,7 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D3 | Report threshold | **5** distinct members hide a joke (proposed: 3) | **Changed** |
 | D4 | Who is admin | Member IDs listed in the `ADMIN_USER_IDS` env var | Confirmed |
 | D5 | Duplicates | Block exact and near duplicates, with a link to the original | Confirmed |
-| D6 | Does the bot joke compete? | No; it has its own slot | Confirmed |
+| D6 | Does the bot joke compete? | ~~No; it has its own slot~~ Moot: US-14 dropped (v1.12) | Confirmed, then obsolete |
 | D7 | Joke rules | 10–500 characters, **any language** (proposed: English only), no edits, the author can delete | **Changed** |
 | D8 | Post rate limit | **10** jokes per member per 24h (proposed: 5). Every joke posted counts, including ones later deleted, so delete-and-repost can't get around the limit (clarified in v1.7). | **Changed** |
 | D9 | Categories | A fixed list of 8; no category filter on the top 10 in the MVP | Confirmed |
@@ -234,6 +229,7 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 
 ## Changelog
 
+- **1.12** (2026-11-25): Dropped US-14 (AI joke of the day) at the author's request; removed the JokeBot role and its mentions; D6 is moot. M8 is dropped.
 - **1.11** (2026-11-25): Added D18 (generic share card for non-Latin jokes); US-17 notes it. Affects M7.
 - **1.10** (2026-11-25): M6 details: names accept any script, the form is on `/me`, chosen names survive sign-in, and rename fails closed. Only published jokes can be reported. Restore clears reports. Admins can't be banned. Affects M6.
 - **1.9** (2026-11-24): US-16 gains "admins can delete any joke from its page", delivered early at the author's request. The Claude moderation eval was dropped by the author. Affects M5, M6.

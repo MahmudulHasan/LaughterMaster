@@ -16,7 +16,7 @@
 | M5 Claude moderation | US-11, US-12, US-13 | Done |
 | M6 Reports & admin | US-15, US-16, US-3 | Done |
 | M7 Sharing | US-17 | Done (live preview check in M9) |
-| M8 AI joke of the day | US-14 | Not started |
+| M8 AI joke of the day | US-14 | Dropped |
 | M9 Ship | NFRs | Not started |
 
 **Why this order:** Sign-in comes first because posting, voting, and reports all depend on it. The core loop (post → vote → top 10) comes next, so the app is usable early. Moderation (M5) is the riskiest AI work and lands **before anything is deployed**: nothing goes public until M9, so the "public content is moderated" rule holds.
@@ -125,13 +125,8 @@
 
 **Exit:** US-17 passes locally.
 
-## M8: AI joke of the day (US-14)
-**Course practice:** scheduled and automated AI behavior.
-- [ ] JokeBot system user
-- [ ] Generation job (locally a script; on Vercel a cron job at 08:00 UTC) that runs moderation and duplicate checks
-- [ ] "AI joke of the day" slot with an AI badge, excluded from the top 10
-
-**Exit:** US-14 passes.
+## M8: AI joke of the day (US-14): dropped
+Dropped by the author on 2026-11-25 (SPEC v1.12). Nothing was built.
 
 ## M9: Ship
 **Course practice:** release readiness, security review, deployment.
