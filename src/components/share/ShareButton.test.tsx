@@ -138,6 +138,23 @@ describe("ShareButton (US-17)", () => {
     expect(screen.getByRole("button", { name: "Share" })).toHaveFocus();
   });
 
+  it("opens toward the left when Share sits on the right of the screen", async () => {
+    render(<ShareButton jokeId="j1" text="A joke" />);
+    const button = screen.getByRole("button", { name: "Share" });
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue({
+      left: window.innerWidth - 90,
+      width: 80,
+    } as DOMRect);
+    await userEvent.click(button);
+    expect(screen.getByRole("menu")).toHaveClass("right-0");
+    expect(screen.getByRole("menu")).not.toHaveClass("left-0");
+  });
+
+  it("opens toward the right when Share sits on the left", async () => {
+    const menu = await openMenu();
+    expect(menu).toHaveClass("left-0");
+  });
+
   it("closes when clicking outside", async () => {
     await openMenu();
     await userEvent.click(document.body);

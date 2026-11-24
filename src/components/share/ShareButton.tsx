@@ -79,10 +79,20 @@ export function ShareButton({
   const [status, setStatus] = useState("");
   // Browser-only facts, read when the menu opens (an event, never during
   // render) so server and client render the same closed button.
-  const [target, setTarget] = useState({ url: "", canNativeShare: false });
+  const [target, setTarget] = useState({
+    url: "",
+    canNativeShare: false,
+    // Open toward the roomier side so the menu never leaves the screen.
+    alignRight: false,
+  });
   const rootRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
+
+  function buttonCenter() {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    return rect ? rect.left + rect.width / 2 : 0;
+  }
 
   function toggle() {
     if (!open) {
@@ -92,6 +102,7 @@ export function ShareButton({
           window.location.origin,
         ).toString(),
         canNativeShare: typeof navigator.share === "function",
+        alignRight: buttonCenter() > window.innerWidth / 2,
       });
     }
     setOpen(!open);
@@ -161,7 +172,7 @@ export function ShareButton({
           id={menuId}
           role="menu"
           aria-label="Share this joke"
-          className="absolute bottom-full left-0 z-40 mb-2 w-56 rounded-xl border border-black/10 bg-white p-1.5 shadow-lg"
+          className={`absolute bottom-full ${target.alignRight ? "right-0" : "left-0"} z-40 mb-2 w-56 rounded-xl border border-black/10 bg-white p-1.5 shadow-lg`}
         >
           <a
             role="menuitem"
