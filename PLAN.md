@@ -133,8 +133,10 @@ Dropped by the author on 2026-11-25 (SPEC v1.12). Nothing was built.
 - [ ] Playwright smoke test: sign in (mocked) → post → vote → appears in the top 10 → share link
 - [ ] Accessibility pass (keyboard + axe) and performance check against the NFRs
 - [ ] `/security-review` and `review-against-spec` on the whole app
-- [ ] Create the Google OAuth client (Google Cloud Console) with local and production redirect URLs; add the ID and secret to `.env.local` and Vercel (D15)
-- [ ] Verify the real Google sign-in end to end, locally and deployed
+- [x] Create the Google OAuth client (project `laughtermaster`, client "LaughterMaster web (local)", External, testing mode) with the local redirect URL; ID and secret in `.env.local` (2026-11-25)
+- [ ] Add the production redirect URL and put the ID and secret in Vercel; add a privacy policy page and publish the consent screen (D15)
+- [x] Verify the real Google sign-in locally (session holds only id, name and photo)
+- [ ] Verify the real Google sign-in when deployed
 - [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
 - [ ] Vercel + hosted Postgres; secrets set in Vercel
 - [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
