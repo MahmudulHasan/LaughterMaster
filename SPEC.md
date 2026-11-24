@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.12** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.13** · 2026-11-24 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -166,7 +166,7 @@ As an admin, I want to review hidden and pending jokes, so that I can make the f
 **US-17 · Share with preview cards · M**
 As anyone, I want shared links to look good on social media, so that friends click them.
 - Every joke page has Open Graph and Twitter Card tags, plus a generated **1200×630 image** showing the joke text, the author's name, and the LaughterMaster brand. Long jokes are truncated with "…".
-- A "Share" button opens the device's share sheet where available, and otherwise copies the link and shows a "Link copied" confirmation.
+- A "Share" button opens a menu with **Share on Facebook**, **Share on WhatsApp**, **Share on X** and **Copy link** on every device (Facebook gets the joke page URL and builds the preview from its tags; WhatsApp and X also carry the joke text, shortened to 200 characters). Copy link shows a "Link copied" confirmation. Where the browser has a device share sheet, the menu also offers **More options…** to open it. The menu closes on Escape (focus returns to Share) or an outside click.
 - Jokes written in a script the card can't render (Bangla, Hindi, Korean, Arabic, and others) get a branded card saying "Open the link to read this joke", rather than garbled text. _(D18)_
 
 ## 5. Non-functional requirements
@@ -229,6 +229,7 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 
 ## Changelog
 
+- **1.13** (2026-11-24): US-17: Share opens a menu with Facebook, WhatsApp, X and Copy link on every device, plus the device share sheet where available. The share sheet alone had no Facebook option on computers. Author request. Affects M7.
 - **1.12** (2026-11-25): Dropped US-14 (AI joke of the day) at the author's request; removed the JokeBot role and its mentions; D6 is moot. M8 is dropped.
 - **1.11** (2026-11-25): Added D18 (generic share card for non-Latin jokes); US-17 notes it. Affects M7.
 - **1.10** (2026-11-25): M6 details: names accept any script, the form is on `/me`, chosen names survive sign-in, and rename fails closed. Only published jokes can be reported. Restore clears reports. Admins can't be banned. Affects M6.
