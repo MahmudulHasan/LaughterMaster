@@ -122,6 +122,7 @@
 - [x] `next/og` 1200×630 image (`/joke/[id]/opengraph-image`) with truncation for long jokes; jokes in non-Latin scripts get a generic card (D18)
 - [x] Share button on the joke page, lists and home: device share sheet, or copy link with a "Link copied" confirmation
 - [x] Share menu: Facebook, WhatsApp, X, Copy link, plus the device share sheet where available (SPEC 1.13, 2026-11-24)
+- [x] Bangla jokes and author names on the share card, shaped with HarfBuzz + Noto Sans Bengali; the whole joke fits, with smaller type for long ones (SPEC 1.14, D18, 2026-11-24)
 - [ ] Manual check with a link-preview debugger once deployed (done in M9)
 
 **Exit:** US-17 passes locally.

@@ -1,8 +1,13 @@
 // Text layout for the 1200×630 share card (SPEC US-17). Pure, so it's easy
 // to test: the image route just renders what these return.
 
-/** Longest joke text shown on the card, in graphemes, before "…". */
-export const CARD_MAX_GRAPHEMES = 180;
+import { JOKE_MAX_LENGTH } from "@/server/jokes/types";
+
+/**
+ * Longest joke text shown on the card, in graphemes, before "…": the whole
+ * joke. Long jokes get smaller type instead of being cut.
+ */
+export const CARD_MAX_GRAPHEMES = JOKE_MAX_LENGTH;
 
 function graphemes(text: string): string[] {
   const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -36,10 +41,10 @@ export function cardFontSize(text: string): number {
 }
 
 /**
- * Whether the card can show this text faithfully. The image renderer has
- * no complex-script shaping (Bangla, Hindi, Arabic, ...) and only a Latin
- * font, so anything beyond Latin letters, accents, digits, punctuation and
- * emoji gets a generic card instead of garbled text.
+ * Whether the card's renderer can show this text directly. It has no
+ * complex-script shaping and only a Latin font, so anything beyond Latin
+ * letters, accents, digits, punctuation and emoji goes elsewhere: Bangla is
+ * shaped by src/server/share/shapedText.ts, other scripts get a generic card.
  */
 export function canRenderOnCard(text: string): boolean {
   return !/[^\p{Script=Latin}\p{Script=Common}\p{Script=Inherited}]/u.test(

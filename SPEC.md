@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.13** · 2026-11-24 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.14** · 2026-11-24 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -165,9 +165,9 @@ As an admin, I want to review hidden and pending jokes, so that I can make the f
 
 **US-17 · Share with preview cards · M**
 As anyone, I want shared links to look good on social media, so that friends click them.
-- Every joke page has Open Graph and Twitter Card tags, plus a generated **1200×630 image** showing the joke text, the author's name, and the LaughterMaster brand. Long jokes are truncated with "…".
+- Every joke page has Open Graph and Twitter Card tags, plus a generated **1200×630 image** showing the joke text, the author's name, and the LaughterMaster brand. The **whole joke** is shown: long jokes get smaller type (from 64px down to 26px), so even a 500-character joke fits.
 - A "Share" button opens a menu with **Share on Facebook**, **Share on WhatsApp**, **Share on X** and **Copy link** on every device (Facebook gets the joke page URL and builds the preview from its tags; WhatsApp and X also carry the joke text, shortened to 200 characters). Copy link shows a "Link copied" confirmation. Where the browser has a device share sheet, the menu also offers **More options…** to open it. The menu closes on Escape (focus returns to Share) or an outside click.
-- Jokes written in a script the card can't render (Bangla, Hindi, Korean, Arabic, and others) get a branded card saying "Open the link to read this joke", rather than garbled text. _(D18)_
+- Bangla jokes show their text on the card too, correctly shaped (conjuncts, vowel signs), mixed with English where the joke mixes them; a Bangla author name shows in the byline. Emoji in Bangla jokes are left out of the card. Jokes in scripts the card has no font for (Hindi, Korean, Arabic, and others) get a branded card saying "Open the link to read this joke", rather than garbled text. _(D18)_
 
 ## 5. Non-functional requirements
 
@@ -225,10 +225,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D15 | When the Google OAuth client is created | Deferred to M9. Until then, development uses a dev-only test sign-in and tests mock OAuth. The real Google flow is first exercised in M9. | Author |
 | D16 | 404 status for unavailable jokes and profiles | Soft 404 for now: the friendly page is shown with status 200 and `noindex`, because `cacheComponents` sends the status before the session-dependent check runs. A real 404 would need a proxy doing an auth + DB lookup on every request; revisit in M9. Verified 2026-11-23: Next emits `<meta name="robots" content="noindex">`, but in the streamed body rather than `<head>`. | Lead (engineering) |
 | D17 | Moderation without an API key | In local development with no Anthropic credentials, moderation is skipped and jokes are approved (recorded as `skipped`), so the app is usable before a key exists. Production never skips: without credentials new jokes stay pending. The moderation model is configurable (`MODERATION_MODEL`, default `claude-opus-5-5`). | Lead (engineering) |
-| D18 | Share cards for non-Latin jokes | The image renderer (`next/og`) can't shape complex scripts such as Bengali, and bundling CJK fonts is heavy. So the card shows the joke text only for Latin-script jokes (accents and emoji are fine); others get a branded card with the author's name. The joke page itself shows every script normally. | Lead (engineering) |
+| D18 | Share cards for non-Latin jokes | The image renderer (`next/og`) can't shape complex scripts. Latin jokes use it directly. **Bangla** jokes (and Bangla author names) are shaped with HarfBuzz using Noto Sans Bengali (plus Noto Sans for English, digits and punctuation) and drawn as outlines, so they read correctly; emoji in them are left out. Other scripts still get a branded card with the author's name; each could be added the same way with its own font. The joke page itself shows every script normally. | Lead (engineering), Bangla support at the author's request |
 
 ## Changelog
 
+- **1.14** (2026-11-24): D18 and US-17: Bangla jokes and author names now appear on the share card, shaped with HarfBuzz; other non-Latin scripts keep the generic card. The card shows the whole joke, shrinking the type for long ones, instead of cutting at 180 characters. Author requests. Affects M7.
 - **1.13** (2026-11-24): US-17: Share opens a menu with Facebook, WhatsApp, X and Copy link on every device, plus the device share sheet where available. The share sheet alone had no Facebook option on computers. Author request. Affects M7.
 - **1.12** (2026-11-25): Dropped US-14 (AI joke of the day) at the author's request; removed the JokeBot role and its mentions; D6 is moot. M8 is dropped.
 - **1.11** (2026-11-25): Added D18 (generic share card for non-Latin jokes); US-17 notes it. Affects M7.

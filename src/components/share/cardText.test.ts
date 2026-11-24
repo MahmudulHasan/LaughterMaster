@@ -15,8 +15,13 @@ describe("cardText (US-17)", () => {
     );
   });
 
-  it("truncates long jokes at a word boundary with an ellipsis", () => {
-    const long = "word ".repeat(100);
+  it("keeps a whole joke of the maximum length", () => {
+    const full = "word ".repeat(100).trim(); // 499 characters
+    expect(cardText(full)).toBe(full);
+  });
+
+  it("truncates text past the limit at a word boundary with an ellipsis", () => {
+    const long = "word ".repeat(150);
     const card = cardText(long);
     expect(card.endsWith("…")).toBe(true);
     expect(Array.from(card).length).toBeLessThanOrEqual(CARD_MAX_GRAPHEMES + 1);
