@@ -62,7 +62,12 @@ export type JokePage = {
 };
 
 export type CreateJokeError =
-  "not_signed_in" | "too_short" | "too_long" | "rate_limited";
+  | "not_signed_in"
+  | "too_short"
+  | "too_long"
+  | "rate_limited"
+  | "duplicate"
+  | "rejected";
 
 export type CreateJokeResult =
   | { ok: true; joke: JokeView }
@@ -71,7 +76,25 @@ export type CreateJokeResult =
       error: CreateJokeError;
       /** For "rate_limited": ISO time when the member can post again. */
       retryAt?: string;
+      /** For "duplicate": id of the existing joke it repeats (US-13). */
+      duplicateOf?: string;
+      /** For "rejected": short, kind reason in English (US-11). */
+      reason?: string;
     };
+
+/** The fixed category list (US-12, D9). Names stay in English. */
+export const JOKE_CATEGORIES = [
+  "Puns",
+  "Dad jokes",
+  "One-liners",
+  "Tech",
+  "Animals",
+  "Wordplay",
+  "Knock-knock",
+  "Other",
+] as const;
+
+export type JokeCategory = (typeof JOKE_CATEGORIES)[number];
 
 /** Header data for a member profile (US-18). */
 export type ProfileView = {

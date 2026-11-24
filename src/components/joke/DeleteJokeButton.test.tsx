@@ -36,6 +36,16 @@ function setup() {
 }
 
 describe("DeleteJokeButton", () => {
+  it("uses admin wording when an admin deletes someone else's joke", async () => {
+    render(<DeleteJokeButton jokeId="j-1" asAdmin />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete (admin)" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Delete this member's joke?" }),
+    ).toHaveAccessibleDescription(/as an admin/);
+  });
+
   it("asks for confirmation before deleting, and stays open under StrictMode", async () => {
     const opener = setup();
     expect(screen.queryByRole("dialog")).toBeNull();

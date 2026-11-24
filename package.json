@@ -14,9 +14,11 @@
     "format:check": "prettier --check .",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run test",
     "db:generate": "drizzle-kit generate",
-    "db:seed": "tsx scripts/seed-dev.ts"
+    "db:seed": "tsx scripts/seed-dev.ts",
+    "moderate:pending": "tsx --env-file-if-exists=.env.local scripts/moderate-pending.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.13.0",
     "@electric-sql/pglite": "^0.5.17",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.6",

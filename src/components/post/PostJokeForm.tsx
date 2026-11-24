@@ -47,6 +47,13 @@ export function serverErrorMessage(state: NonNullable<CreateJokeFormState>) {
       return `That joke is a bit short. ${RANGE}`;
     case "too_long":
       return `That joke is too long. ${RANGE}`;
+    case "duplicate":
+      return "This joke is already on LaughterMaster, so it can't be posted again.";
+    case "rejected":
+      return `We couldn't post this one. ${state.reason ?? ""} Your text is still here if you'd like to rework it.`.replace(
+        /\s+/g,
+        " ",
+      );
     case "rate_limited": {
       const retry = state.retryAt ? new Date(state.retryAt) : null;
       const when =
@@ -125,6 +132,17 @@ export function PostJokeForm({ postsLeft }: PostJokeFormProps) {
           className="mt-4 rounded-xl border border-[#B4400C]/30 bg-[#FDF0EA] p-3 text-sm text-[#7A2B08]"
         >
           {serverErrorMessage(state)}
+          {state.error === "duplicate" && state.duplicateOf && (
+            <>
+              {" "}
+              <a
+                href={`/joke/${encodeURIComponent(state.duplicateOf)}`}
+                className="font-semibold underline"
+              >
+                See the original
+              </a>
+            </>
+          )}
         </p>
       )}
 

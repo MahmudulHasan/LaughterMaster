@@ -28,7 +28,8 @@ Node 22+. Copy `.env.example` to `.env.local` for local secrets.
 - `npm run test` runs all tests. A single file: `npx vitest run src/server/db/db.test.ts`. A single test by name: add `-t "name"`.
 - `npm run format`: Prettier write. Markdown and `.claude/` are deliberately not formatted.
 - `npm run db:generate`: create a migration in `drizzle/` after changing `src/server/db/schema.ts`.
-- `npm run db:seed`: add the 3 dev users and 32 sample jokes (idempotent). Stop the dev server first.
+- `npm run db:seed`: add the 3 dev users and 36 sample jokes (idempotent). Stop the dev server first.
+- `npm run moderate:pending`: retry moderation for pending jokes (reads `.env.local`; stop the dev server first).
 
 ## How the scaffold fits together
 
@@ -37,6 +38,7 @@ Node 22+. Copy `.env.example` to `.env.local` for local secrets.
   - **Only one process may open the local DB.** A second opener (e.g. `next build` or `npm run db:seed` while `next dev` runs) corrupts it, because PGlite can't detect other processes. `.data/pglite.lock` now refuses a second opener with `DatabaseLockedError`; stop the dev server first or point `PGLITE_DATA_DIR` at another folder. A stale lock is taken over automatically.
   - `DatabaseDamagedError` means the folder is broken: stop the dev server, move it aside (`mv .data/pglite .data/pglite-broken`), restart, then `npm run db:seed`.
 - **Jokes** (`src/server/jokes/`): `types.ts` is the client-safe contract (limits, `jokeLength` counts graphemes); `queries.ts` holds the rules (visibility, 10 posts/24h, soft delete, keyset cursor pagination, never offsets); `actions.ts` are server actions that read the user from the session, never from the client.
+- **Moderation** (`src/server/moderation/`): new jokes are saved `pending`, then `moderatePendingJoke` asks the `Moderator` (one `messages.parse` call with a Zod schema, effort `low`, 10s timeout, no SDK retries) and approves with a category or rejects with a reason / `duplicateOf`. Unavailable → stays pending; `npm run moderate:pending` retries. `createModerator()` picks Claude when `ANTHROPIC_API_KEY` is set, skips in development without it, and fails closed otherwise (SPEC D17). Tests always use a fake `Moderator` and never call the real API.
 - **Auth** (`src/auth.ts`, `src/server/auth/`): Auth.js v5 beta with JWT sessions. Google is registered only when `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` are set; until M9 local development uses the dev-only "Sign in as" test users (`dev-mina`, `dev-priya`, `dev-admin`), which exist only when `NODE_ENV=development` and Google isn't configured. `next dev` needs `AUTH_SECRET` in `.env.local`. Sign-in failures redirect back to the starting page with `?signin=failed`; `/auth/error` is a redirect route, not a page. Only `src/server/auth/safe-redirect.ts` is safe to import from client code.
 - `next.config.ts` enables `cacheComponents` (Next 16). Consequences learned the hard way:
   - A Server Component that calls `auth()` must `await connection()` first and sit inside `<Suspense>` (the header does); otherwise prerendering fails and the page never hydrates. Component tests stub `connection` in `vitest.setup.ts`.

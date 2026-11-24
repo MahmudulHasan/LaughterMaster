@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ModerationResult } from "../moderation/pipeline";
+
 import type { JokeView } from "./types";
 
 const auth = vi.fn();
@@ -10,12 +12,23 @@ vi.mock("@/server/db/ready", () => ({ getReadyDb: async () => db }));
 
 const createJoke = vi.fn();
 const deleteJoke = vi.fn();
+const removeJokeAsAdmin = vi.fn();
 const countRecentPosts = vi.fn();
 vi.mock("@/server/jokes/queries", () => ({
   createJoke,
   deleteJoke,
+  removeJokeAsAdmin,
   countRecentPosts,
 }));
+
+const isAdmin = vi.fn<(id: string) => boolean>(() => false);
+vi.mock("@/server/auth/admin", () => ({ isAdmin }));
+
+const moderatePendingJoke = vi.fn<
+  (...args: unknown[]) => Promise<ModerationResult>
+>(async () => ({ status: "approved" }));
+vi.mock("@/server/moderation/pipeline", () => ({ moderatePendingJoke }));
+vi.mock("@/server/moderation/shared", () => ({ getModerator: () => "mod" }));
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
 
@@ -55,7 +68,12 @@ beforeEach(() => {
   auth.mockReset();
   createJoke.mockReset();
   deleteJoke.mockReset();
+  removeJokeAsAdmin.mockReset();
+  isAdmin.mockReset();
+  isAdmin.mockReturnValue(false);
   countRecentPosts.mockReset();
+  moderatePendingJoke.mockReset();
+  moderatePendingJoke.mockResolvedValue({ status: "approved" });
   auth.mockResolvedValue(session);
 });
 
@@ -121,6 +139,51 @@ describe("createJokeAction", () => {
     });
   });
 
+  it("moderates the new joke, still redirecting when it stays pending", async () => {
+    createJoke.mockResolvedValue({ ok: true, joke });
+    moderatePendingJoke.mockResolvedValue({ status: "pending" });
+    await expect(
+      createJokeAction(null, form({ text: joke.text })),
+    ).rejects.toMatchObject({ url: "/joke/j-1" });
+    expect(moderatePendingJoke).toHaveBeenCalledWith(db, "j-1", "mod");
+  });
+
+  it("returns the moderator's reason when the joke is rejected", async () => {
+    createJoke.mockResolvedValue({ ok: true, joke });
+    moderatePendingJoke.mockResolvedValue({
+      status: "rejected",
+      reason: "This looks like it targets a group of people.",
+      duplicateOf: null,
+    });
+    expect(await createJokeAction(null, form({ text: joke.text }))).toEqual({
+      error: "rejected",
+      reason: "This looks like it targets a group of people.",
+    });
+  });
+
+  it("reports near and exact duplicates with the original", async () => {
+    createJoke.mockResolvedValue({ ok: true, joke });
+    moderatePendingJoke.mockResolvedValue({
+      status: "rejected",
+      reason: "Already here.",
+      duplicateOf: "orig",
+    });
+    expect(await createJokeAction(null, form({ text: joke.text }))).toEqual({
+      error: "duplicate",
+      duplicateOf: "orig",
+    });
+
+    createJoke.mockResolvedValue({
+      ok: false,
+      error: "duplicate",
+      duplicateOf: "orig-2",
+    });
+    expect(await createJokeAction(null, form({ text: joke.text }))).toEqual({
+      error: "duplicate",
+      duplicateOf: "orig-2",
+    });
+  });
+
   it("passes rate_limited through with the retry time", async () => {
     createJoke.mockResolvedValue({
       ok: false,
@@ -153,11 +216,23 @@ describe("deleteJokeAction", () => {
     });
   });
 
-  it("returns to the joke page when the caller isn't the author", async () => {
+  it("returns to the joke page when the caller isn't the author or an admin", async () => {
     deleteJoke.mockResolvedValue(false);
     await expect(
       deleteJokeAction(form({ jokeId: "j-1" })),
     ).rejects.toMatchObject({ url: "/joke/j-1" });
+    expect(removeJokeAsAdmin).not.toHaveBeenCalled();
+  });
+
+  it("lets an admin remove someone else's joke (US-16)", async () => {
+    deleteJoke.mockResolvedValue(false);
+    isAdmin.mockReturnValue(true);
+    removeJokeAsAdmin.mockResolvedValue(true);
+    await expect(
+      deleteJokeAction(form({ jokeId: "j-1" })),
+    ).rejects.toMatchObject({ url: "/jokes" });
+    expect(isAdmin).toHaveBeenCalledWith("u1");
+    expect(removeJokeAsAdmin).toHaveBeenCalledWith(db, { jokeId: "j-1" });
   });
 
   it("never deletes when logged out", async () => {

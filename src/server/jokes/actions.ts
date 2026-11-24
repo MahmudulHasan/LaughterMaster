@@ -5,11 +5,15 @@ import { connection } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { isAdmin } from "@/server/auth/admin";
 import { getReadyDb } from "@/server/db/ready";
+import { getModerator } from "@/server/moderation/shared";
+import { moderatePendingJoke } from "@/server/moderation/pipeline";
 import {
   countRecentPosts,
   createJoke,
   deleteJoke,
+  removeJokeAsAdmin,
 } from "@/server/jokes/queries";
 import {
   JOKE_MAX_LENGTH,
@@ -27,6 +31,10 @@ export type CreateJokeFormState = {
   error: CreateJokeError;
   /** For "rate_limited": ISO time when the member can post again. */
   retryAt?: string;
+  /** For "duplicate": the existing joke it repeats. */
+  duplicateOf?: string;
+  /** For "rejected": the moderator's short reason. */
+  reason?: string;
 } | null;
 
 // Cap the raw input well above 500 graphemes (an emoji can be ~10 code units)
@@ -69,9 +77,23 @@ export async function createJokeAction(
     text: parsed.data.text,
   });
   if (!result.ok) {
-    return result.retryAt
-      ? { error: result.error, retryAt: result.retryAt }
-      : { error: result.error };
+    const state: NonNullable<CreateJokeFormState> = { error: result.error };
+    if (result.retryAt) state.retryAt = result.retryAt;
+    if (result.duplicateOf) state.duplicateOf = result.duplicateOf;
+    return state;
+  }
+
+  // Moderate before anyone else can see it (US-11). If Claude is
+  // unavailable the joke stays pending and its page says it's under review.
+  const moderation = await moderatePendingJoke(
+    db,
+    result.joke.id,
+    getModerator(),
+  );
+  if (moderation.status === "rejected") {
+    return moderation.duplicateOf
+      ? { error: "duplicate", duplicateOf: moderation.duplicateOf }
+      : { error: "rejected", reason: moderation.reason };
   }
   // redirect() throws, so it must stay outside any try/catch.
   redirect(`/joke/${encodeURIComponent(result.joke.id)}`);
@@ -79,8 +101,8 @@ export async function createJokeAction(
 
 /**
  * Deletes the signed-in member's own joke (US-5), then goes to their profile.
- * Anyone else (or a repeat delete) is sent back to the joke page, which then
- * shows the joke or its 404.
+ * An admin removing someone else's joke goes to /jokes. Anyone else (or a
+ * repeat delete) is sent back to the joke page, which shows the joke or 404.
  */
 export async function deleteJokeAction(formData: FormData): Promise<void> {
   const parsed = deleteJokeSchema.safeParse({ jokeId: formData.get("jokeId") });
@@ -91,9 +113,15 @@ export async function deleteJokeAction(formData: FormData): Promise<void> {
   if (!userId) redirect(`/joke/${encodeURIComponent(jokeId)}`);
 
   const db = await getReadyDb();
-  const deleted = await deleteJoke(db, { jokeId, userId });
-  if (!deleted) redirect(`/joke/${encodeURIComponent(jokeId)}`);
-  redirect(`/u/${encodeURIComponent(userId)}`);
+  // The author deletes their own joke (US-5); otherwise an admin may remove
+  // anyone's joke (US-16). Admin status comes from the server config only.
+  if (await deleteJoke(db, { jokeId, userId })) {
+    redirect(`/u/${encodeURIComponent(userId)}`);
+  }
+  if (isAdmin(userId) && (await removeJokeAsAdmin(db, { jokeId }))) {
+    redirect("/jokes");
+  }
+  redirect(`/joke/${encodeURIComponent(jokeId)}`);
 }
 
 /**

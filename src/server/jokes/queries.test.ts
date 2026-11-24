@@ -15,6 +15,7 @@ import {
   listJokes,
   listUserJokes,
   normalizeJokeText,
+  removeJokeAsAdmin,
 } from "./queries";
 import type { JokePage, JokeStatus } from "./types";
 
@@ -116,7 +117,7 @@ describe("createJoke", () => {
     expect(count).toBe(0);
   });
 
-  it("trims, saves and returns an approved joke without email", async () => {
+  it("trims, saves and returns a pending joke without email", async () => {
     const result = await createJoke(db, {
       authorId: "mina",
       text: "   Why did the chicken cross the road?  ",
@@ -127,7 +128,7 @@ describe("createJoke", () => {
       joke: {
         id: expect.any(String),
         text: "Why did the chicken cross the road?",
-        status: "approved",
+        status: "pending",
         author: {
           id: "mina",
           displayName: "Name mina",
@@ -372,6 +373,26 @@ describe("deleteJoke", () => {
     );
     const [row] = await db.select().from(jokes).where(eq(jokes.id, id));
     expect(row?.status).toBe("approved");
+  });
+});
+
+describe("removeJokeAsAdmin (US-16)", () => {
+  it("removes any member's joke, so it disappears for everyone", async () => {
+    const id = await addJoke("mina");
+    expect(await removeJokeAsAdmin(db, { jokeId: id })).toBe(true);
+    expect(await getJokeForViewer(db, id, null)).toBeNull();
+    expect(await getJokeForViewer(db, id, "mina")).toBeNull();
+    const [row] = await db.select().from(jokes).where(eq(jokes.id, id));
+    expect(row!.status).toBe("removed");
+  });
+
+  it("is false for unknown or already removed/deleted jokes", async () => {
+    const deleted = await addJoke("mina", { status: "deleted" });
+    expect(await removeJokeAsAdmin(db, { jokeId: deleted })).toBe(false);
+    expect(await removeJokeAsAdmin(db, { jokeId: "nope" })).toBe(false);
+    const id = await addJoke("mina");
+    await removeJokeAsAdmin(db, { jokeId: id });
+    expect(await removeJokeAsAdmin(db, { jokeId: id })).toBe(false);
   });
 });
 

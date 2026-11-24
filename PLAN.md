@@ -13,7 +13,7 @@
 | M2 Sign in | US-1, US-2 | Done (live Google flow verified in M9) |
 | M3 Post & view jokes | US-4, US-5, US-6, US-7, US-18 | Done |
 | M4 Voting & top 10 | US-8, US-9, US-10 | Done |
-| M5 Claude moderation | US-11, US-12, US-13 | Not started |
+| M5 Claude moderation | US-11, US-12, US-13 | Done |
 | M6 Reports & admin | US-15, US-16, US-3 | Not started |
 | M7 Sharing | US-17 | Not started |
 | M8 AI joke of the day | US-14 | Not started |
@@ -91,24 +91,26 @@
 
 ## M5: Claude moderation (US-11, US-12, US-13)
 **Course practice:** building an AI feature responsibly (prompts, evals, failure modes).
-- [ ] One Claude call returns structured JSON: `{ decision, reason, category }`
-- [ ] A small **eval set** (about 30 labeled jokes, good and bad, including several non-English ones) checks the prompt; run it manually and record the results
-- [ ] Rejected → friendly reason; timeout or error → `pending`, never public
-- [ ] Retry job for pending jokes
-- [ ] Exact-duplicate check on normalized text; near-duplicate check via Claude against the 20 closest candidates
-- [ ] Category chip shown on jokes
-- [ ] Display names (US-3 prep) go through the same moderation
-- [ ] All tests mock the SDK
+- [x] One Claude call returns structured JSON: `{ decision, reason, category, duplicate_of }` (`messages.parse` + Zod, effort `low`, 10s timeout)
+- ~~Eval set run against the real API~~ dropped by the author (2026-11-24); moderation is covered by unit tests with a fake moderator
+- [x] Rejected → friendly reason; timeout or error → `pending`, never public
+- [x] Retry job for pending jokes (`npm run moderate:pending`; scheduled in M9)
+- [x] Exact-duplicate check on normalized text; near-duplicate check via Claude against the 20 closest candidates (character trigrams)
+- [x] Category chip shown on jokes
+- [ ] Display names go through the same moderation (moved to M6 with US-3, where names become editable)
+- [x] All tests mock the SDK
+- [x] Development without an API key skips moderation; production fails closed (D17)
 
-**Exit:** US-11 through US-13 pass; the eval results are recorded in `docs/evals/moderation.md`.
+**Exit:** US-11 through US-13 pass with a fake moderator in tests.
 
 ## M6: Reports & admin (US-15, US-16, US-3)
 **Course practice:** designing for misuse.
 - [ ] `Report` table, unique per (joke, user); members can't report their own jokes
 - [ ] 5 reports → hidden
+- [x] Admins can delete any joke from its page (status `removed`; pulled forward from the queue at the author's request)
 - [ ] `/admin` queue (404 for non-admins): restore, remove, ban
 - [ ] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
-- [ ] Display name change (US-3)
+- [ ] Display name change (US-3) — new names go through Claude moderation (moved from M5)
 - [ ] Owner's profile shows an "Edit name" link (US-18, deferred from M3)
 - [ ] Session shows the new name right after a rename (today the name is copied into the sign-in token, so it stays stale until the next sign-in)
 
@@ -141,6 +143,7 @@
 - [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
 - [ ] Vercel + hosted Postgres; secrets set in Vercel
 - [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
+- [ ] Schedule `moderate:pending` (e.g. Vercel cron) and set `ANTHROPIC_API_KEY` in production
 - [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)
 - [ ] Verify preview cards on real social platforms
 - [ ] README with setup, architecture, and a course retrospective

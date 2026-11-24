@@ -15,12 +15,19 @@ export type JokeDetailProps = {
   joke: JokeView;
   /** True when the signed-in viewer wrote this joke. */
   isAuthor: boolean;
+  /** The viewer is an admin, who may delete anyone's joke (US-16). */
+  isAdmin?: boolean;
   /** Like/Dislike (US-8); omitted for jokes that can't be voted on. */
   votes?: { voter: Voter; signInOptions: SignInOptions };
 };
 
 /** The big single-joke layout of `/joke/<id>` (US-6). */
-export function JokeDetail({ joke, isAuthor, votes }: JokeDetailProps) {
+export function JokeDetail({
+  joke,
+  isAuthor,
+  isAdmin = false,
+  votes,
+}: JokeDetailProps) {
   const pending = joke.status === "pending";
   return (
     <>
@@ -64,7 +71,11 @@ export function JokeDetail({ joke, isAuthor, votes }: JokeDetailProps) {
           </span>
           {/* M7 (US-17): share controls go here. */}
           <div data-slot="joke-actions" className="ml-auto flex gap-2">
-            {isAuthor && <DeleteJokeButton jokeId={joke.id} />}
+            {isAuthor ? (
+              <DeleteJokeButton jokeId={joke.id} />
+            ) : (
+              isAdmin && <DeleteJokeButton jokeId={joke.id} asAdmin />
+            )}
           </div>
           {votes && joke.status === "approved" && (
             <div className="w-full pt-2">

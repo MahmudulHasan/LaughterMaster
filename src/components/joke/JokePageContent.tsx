@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
 import { auth } from "@/auth";
+import { isAdmin } from "@/server/auth/admin";
 import { getSignInOptions } from "@/server/auth/providers";
 import { getReadyDb } from "@/server/db/ready";
 import { getJokeForViewer } from "@/server/jokes/queries";
@@ -31,6 +32,7 @@ export async function JokePageContent({
     <JokeDetail
       joke={joke ?? found}
       isAuthor={isAuthor}
+      isAdmin={isAdmin(viewerId)}
       votes={{
         voter: !viewerId ? "visitor" : isAuthor ? "author" : "member",
         signInOptions: getSignInOptions(),

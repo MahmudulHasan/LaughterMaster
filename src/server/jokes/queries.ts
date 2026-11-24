@@ -10,6 +10,7 @@ import {
   gt,
   inArray,
   ne,
+  notInArray,
   sql,
   type SQL,
 } from "drizzle-orm";
@@ -127,9 +128,11 @@ export async function countRecentPosts(
 }
 
 /**
- * Post a joke (US-4). Trims the text, checks 10–500 graphemes (D7) and the
- * 10 posts per rolling 24h limit (D8). Every joke created in the window
- * counts, deleted ones included. M3 auto-approves; M5 will create jokes as "pending" for moderation.
+ * Save a new joke as pending (US-4, US-11). Trims the text, checks 10–500
+ * graphemes (D7), the 10 posts per rolling 24h limit (D8; every joke created
+ * in the window counts, deleted ones included) and exact duplicates of
+ * published jokes (US-13). Moderation then approves or rejects it
+ * (`src/server/moderation/pipeline.ts`).
  */
 export async function createJoke(
   db: Db,
@@ -169,13 +172,33 @@ export async function createJoke(
     };
   }
 
+  // Exact duplicate (US-13): same text after normalizing as a published
+  // joke. Near-duplicates are left to Claude during moderation.
+  const normalizedText = normalizeJokeText(text);
+  const [original] = await db
+    .select({ id: jokes.id })
+    .from(jokes)
+    .innerJoin(users, eq(jokes.authorId, users.id))
+    .where(
+      and(
+        eq(jokes.normalizedText, normalizedText),
+        eq(jokes.status, "approved"),
+        eq(users.isBanned, false),
+      ),
+    )
+    .limit(1);
+  if (original) {
+    return { ok: false, error: "duplicate", duplicateOf: original.id };
+  }
+
   const id = crypto.randomUUID();
   await db.insert(jokes).values({
     id,
     authorId: input.authorId,
     text,
-    normalizedText: normalizeJokeText(text),
-    status: "approved", // M5: "pending" until Claude moderates it.
+    normalizedText,
+    // Never public until Claude approves it (US-11, fail closed).
+    status: "pending",
     createdAt: now,
     updatedAt: now,
   });
@@ -224,6 +247,28 @@ export async function deleteJoke(
     )
     .returning({ id: jokes.id });
   return deleted.length > 0;
+}
+
+/**
+ * An admin takes down any member's joke (US-16). It becomes "removed" (not
+ * "deleted", which means the author did it), disappears everywhere and its
+ * votes stop counting. False if the joke doesn't exist or is already gone.
+ */
+export async function removeJokeAsAdmin(
+  db: Db,
+  input: { jokeId: string },
+): Promise<boolean> {
+  const removed = await db
+    .update(jokes)
+    .set({ status: "removed", updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(jokes.id, input.jokeId),
+        notInArray(jokes.status, ["deleted", "removed"]),
+      ),
+    )
+    .returning({ id: jokes.id });
+  return removed.length > 0;
 }
 
 function pageSize(limit: number | undefined): number {

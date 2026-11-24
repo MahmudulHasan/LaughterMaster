@@ -6,6 +6,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   pgTable,
   primaryKey,
   smallint,
@@ -62,9 +63,21 @@ export const jokes = pgTable(
     text: text("text").notNull(),
     /** Lowercase, punctuation removed, whitespace collapsed (M5 duplicates). */
     normalizedText: text("normalized_text").notNull(),
-    status: text("status").$type<JokeStatus>().notNull().default("approved"),
+    // New jokes start "pending" until Claude moderates them (US-11).
+    status: text("status").$type<JokeStatus>().notNull().default("pending"),
     category: text("category"),
     isBot: boolean("is_bot").notNull().default(false),
+    // Moderation audit trail (US-11): what was decided, why, by which model.
+    moderationDecision: text("moderation_decision").$type<
+      "approved" | "rejected" | "skipped"
+    >(),
+    moderationReason: text("moderation_reason"),
+    moderationModel: text("moderation_model"),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    /** Failed moderation calls so far; the retry job gives up after a few. */
+    moderationAttempts: integer("moderation_attempts").notNull().default(0),
+    /** Set when rejected as a repeat of another joke (US-13). */
+    duplicateOf: text("duplicate_of"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

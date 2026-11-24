@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.7** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.9** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -163,6 +163,7 @@ As an admin, I want to review hidden and pending jokes, so that I can make the f
 - `/admin` is visible only to admins; everyone else gets a 404.
 - It lists hidden and pending jokes with their reports and Claude's decision. For each one I can **Restore** or **Remove**.
 - I can **ban** a member. A banned member can't post, vote, or report, and their existing jokes are hidden.
+- On any joke's page I see **Delete (admin)**. After I confirm, the joke is removed everywhere (status `removed`, distinct from an author's `deleted`) and its votes stop counting. Non-admins never see the button, and the server rejects their requests. _(added in v1.9, delivered ahead of the queue)_
 
 ### Epic F: Sharing
 
@@ -179,7 +180,7 @@ As anyone, I want shared links to look good on social media, so that friends cli
 | Abuse | Rate limits: 10 posts per member per 24h, 300 votes per member per hour, 20 reports per member per day. |
 | Privacy | Only the display name and avatar are public. Emails are never exposed. |
 | Secrets | `ANTHROPIC_API_KEY` and the OAuth secrets live only in `.env.local` (and the host's secret store). They're never committed and never sent to the browser. |
-| Cost | Claude calls use a small, fast model (Haiku class) and are capped at about 2 calls per submitted joke. |
+| Cost | One Claude call per submitted joke (plus retries for pending jokes), at low effort. The model is configurable via `MODERATION_MODEL` (default `claude-opus-5-5`; a Haiku-class model is cheaper, author to decide, D17). |
 | Performance | Home page LCP under 2s on a local production build; top-10 query under 100ms with 10k jokes. |
 | Accessibility | WCAG 2.1 AA: every action is keyboard-usable, focus is visible, vote buttons have labels and `aria-pressed`. |
 | Testing | No real Claude or OAuth calls in automated tests. CI runs lint, typecheck, unit tests, and one end-to-end smoke test. |
@@ -226,9 +227,12 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D14 | Profile URL | `/u/<id>`. Usernames or handles are out of scope for the MVP. | Confirmed |
 | D15 | When the Google OAuth client is created | Deferred to M9. Until then, development uses a dev-only test sign-in and tests mock OAuth. The real Google flow is first exercised in M9. | Author |
 | D16 | 404 status for unavailable jokes and profiles | Soft 404 for now: the friendly page is shown with status 200 and `noindex`, because `cacheComponents` sends the status before the session-dependent check runs. A real 404 would need a proxy doing an auth + DB lookup on every request; revisit in M9. Verified 2026-11-23: Next emits `<meta name="robots" content="noindex">`, but in the streamed body rather than `<head>`. | Lead (engineering) |
+| D17 | Moderation without an API key | In local development with no Anthropic credentials, moderation is skipped and jokes are approved (recorded as `skipped`), so the app is usable before a key exists. Production never skips: without credentials new jokes stay pending. The moderation model is configurable (`MODERATION_MODEL`, default `claude-opus-5-5`). | Lead (engineering) |
 
 ## Changelog
 
+- **1.9** (2026-11-24): US-16 gains "admins can delete any joke from its page", delivered early at the author's request. The Claude moderation eval was dropped by the author. Affects M5, M6.
+- **1.8** (2026-11-24): Added D17 (moderation is skipped only in local development without an API key; model configurable). Cost NFR updated: one low-effort call per joke, model choice left to the author. Display-name moderation moves to M6 with US-3. Affects M5, M6, M9.
 - **1.7** (2026-11-23): Clarified D8: deleted jokes still count toward the 10-per-24h limit. US-18's owner links to `/me` and Edit name move to M4 and M6 (the pages don't exist yet). Affects M3, M4, M6.
 - **1.6** (2026-11-22): Added D16: unavailable jokes and profiles return a soft 404 (200 + noindex) until M9; noted on US-6 and US-18. Affects M3 and M9.
 - **1.5** (2026-11-22): Added D15: the Google OAuth client is created in M9; development uses a dev-only test sign-in, never in production (note on US-1). Affects M2 and M9.

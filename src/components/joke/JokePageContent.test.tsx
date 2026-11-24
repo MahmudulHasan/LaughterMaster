@@ -14,6 +14,9 @@ vi.mock("@/auth", () => ({ auth: vi.fn() }));
 const db = { fake: "db" };
 vi.mock("@/server/db/ready", () => ({ getReadyDb: async () => db }));
 vi.mock("@/server/jokes/queries", () => ({ getJokeForViewer: vi.fn() }));
+vi.mock("@/server/auth/admin", () => ({
+  isAdmin: (id: string | null) => id === "u-admin",
+}));
 vi.mock("@/server/jokes/actions", () => ({ deleteJokeAction: vi.fn() }));
 vi.mock("@/server/auth/actions", () => ({
   signInWithGoogle: vi.fn(),
@@ -110,6 +113,15 @@ describe("JokePageContent", () => {
     mockGet.mockResolvedValue(joke);
     await renderPage();
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+  });
+
+  it("lets an admin delete anyone's joke (US-16)", async () => {
+    asUser("u-admin");
+    mockGet.mockResolvedValue(joke);
+    await renderPage();
+    expect(
+      screen.getByRole("button", { name: "Delete (admin)" }),
+    ).toBeInTheDocument();
   });
 
   it("marks the author's own pending joke as under review", async () => {
