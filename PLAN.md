@@ -134,16 +134,17 @@ Dropped by the author on 2026-11-25 (SPEC v1.12). Nothing was built.
 - [ ] Accessibility pass (keyboard + axe) and performance check against the NFRs
 - [ ] `/security-review` and `review-against-spec` on the whole app
 - [x] Create the Google OAuth client (project `laughtermaster`, client "LaughterMaster web (local)", External, testing mode) with the local redirect URL; ID and secret in `.env.local` (2026-11-25)
-- [ ] Add the production redirect URL and put the ID and secret in Vercel; add a privacy policy page and publish the consent screen (D15)
+- [x] Add the production redirect URL (`https://laughter-master.vercel.app/api/auth/callback/google`) and put the ID and secret in Vercel (2026-11-24)
+- [ ] Add a privacy policy page and publish the consent screen (D15); until then only Google test users can sign in
 - [x] Verify the real Google sign-in locally (session holds only id, name and photo)
-- [ ] Verify the real Google sign-in when deployed
+- [x] Verify the real Google sign-in when deployed (session holds only id, name and photo; production admin works)
 - [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
 - [x] DB factory picks hosted Postgres (node-postgres) when `DATABASE_URL` is set, PGlite otherwise; `npm run db:migrate` migrates either, and Vercel runs it before `next build` (`vercel-build`). Verified against a Postgres-protocol server (2026-11-24)
-- [ ] Vercel project + Neon database (Vercel Marketplace integration); secrets set in Vercel
+- [x] Vercel project `laughter-master` + Neon database `laughtermaster-db` (free, iad1, Marketplace integration, `DATABASE_` prefix); AUTH_SECRET (new, production-only), Google ID/secret and ADMIN_USER_IDS set in Vercel. Live at https://laughter-master.vercel.app (2026-11-24)
 - [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
 - [ ] Schedule `moderate:pending` (e.g. Vercel cron) and set `ANTHROPIC_API_KEY` in production
 - [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)
-- [ ] Verify preview cards on real social platforms (set `SITE_URL` in production)
+- [ ] Verify preview cards on real social platforms (`SITE_URL` now falls back to the Vercel production domain)
 - [ ] README with setup, architecture, and a course retrospective
 
 **Exit:** deployed, all Must stories pass, review findings resolved.
