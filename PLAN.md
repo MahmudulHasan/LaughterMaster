@@ -17,7 +17,7 @@
 | M6 Reports & admin | US-15, US-16, US-3 | Done |
 | M7 Sharing | US-17 | Done (live preview check in M9) |
 | M8 AI joke of the day | US-14 | Dropped |
-| M9 Ship | NFRs | Not started |
+| M9 Ship | NFRs | In progress |
 
 **Why this order:** Sign-in comes first because posting, voting, and reports all depend on it. The core loop (post → vote → top 10) comes next, so the app is usable early. Moderation (M5) is the riskiest AI work and lands **before anything is deployed**: nothing goes public until M9, so the "public content is moderated" rule holds.
 
@@ -138,7 +138,8 @@ Dropped by the author on 2026-11-25 (SPEC v1.12). Nothing was built.
 - [x] Verify the real Google sign-in locally (session holds only id, name and photo)
 - [ ] Verify the real Google sign-in when deployed
 - [ ] Revisit D16: return a real 404 status for unavailable jokes and profiles (e.g. a proxy check), or confirm the soft 404 is acceptable
-- [ ] Vercel + hosted Postgres; secrets set in Vercel
+- [x] DB factory picks hosted Postgres (node-postgres) when `DATABASE_URL` is set, PGlite otherwise; `npm run db:migrate` migrates either, and Vercel runs it before `next build` (`vercel-build`). Verified against a Postgres-protocol server (2026-11-24)
+- [ ] Vercel project + Neon database (Vercel Marketplace integration); secrets set in Vercel
 - [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
 - [ ] Schedule `moderate:pending` (e.g. Vercel cron) and set `ANTHROPIC_API_KEY` in production
 - [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)

@@ -28,13 +28,14 @@ Node 22+. Copy `.env.example` to `.env.local` for local secrets.
 - `npm run test` runs all tests. A single file: `npx vitest run src/server/db/db.test.ts`. A single test by name: add `-t "name"`.
 - `npm run format`: Prettier write. Markdown and `.claude/` are deliberately not formatted.
 - `npm run db:generate`: create a migration in `drizzle/` after changing `src/server/db/schema.ts`.
+- `npm run db:migrate`: apply migrations to `DATABASE_URL` (hosted) or the local PGlite folder.
 - `npm run db:seed`: add the 3 dev users and 36 sample jokes (idempotent). Stop the dev server first.
 - `npm run moderate:pending`: retry moderation for pending jokes (reads `.env.local`; stop the dev server first).
 
 ## How the scaffold fits together
 
 - **Tests** (`vitest.config.mts`): two projects chosen by file extension. `*.test.tsx` runs in jsdom with Testing Library (`vitest.setup.ts`); `*.test.ts` runs in node, which PGlite needs. Name a test file to match the environment it needs.
-- **Database** (`src/server/db/`): Drizzle on PGlite; callers depend on the `Db` type so the M9 switch to hosted Postgres only changes the factory. App code calls `getReadyDb()` (shared client kept on `globalThis`, migrated once, closed on shutdown); scripts use `openDb()`; tests use `createDb({ inMemory: true })` + `runMigrations`. Local data lives in `PGLITE_DATA_DIR` (default `./.data/pglite`, gitignored).
+- **Database** (`src/server/db/`): Drizzle on PGlite locally and in tests; on hosted Postgres (Neon, via node-postgres in `hosted.ts`) when `DATABASE_URL` is set. App code depends on the driver-neutral `Db` type and calls `getReadyDb()` (shared client kept on `globalThis`; PGlite is migrated once and closed on shutdown; hosted Postgres is migrated by the deploy, not at start). Scripts use `openDb()`; tests use `createDb({ inMemory: true })` + `runMigrations` and the `PgliteDb` type. `npm run db:migrate` migrates whichever database is configured; Vercel runs it before `next build` via the `vercel-build` script. Local data lives in `PGLITE_DATA_DIR` (default `./.data/pglite`, gitignored).
   - **Only one process may open the local DB.** A second opener (e.g. `next build` or `npm run db:seed` while `next dev` runs) corrupts it, because PGlite can't detect other processes. `.data/pglite.lock` now refuses a second opener with `DatabaseLockedError`; stop the dev server first or point `PGLITE_DATA_DIR` at another folder. A stale lock is taken over automatically.
   - `DatabaseDamagedError` means the folder is broken: stop the dev server, move it aside (`mv .data/pglite .data/pglite-broken`), restart, then `npm run db:seed`.
 - **Jokes** (`src/server/jokes/`): `types.ts` is the client-safe contract (limits, `jokeLength` counts graphemes); `queries.ts` holds the rules (visibility, 10 posts/24h, soft delete, keyset cursor pagination, never offsets); `actions.ts` are server actions that read the user from the session, never from the client.

@@ -6,9 +6,14 @@ import { SiteHeaderShell } from "@/components/SiteHeaderShell";
 
 import "./globals.css";
 
-// Absolute URLs for share previews (og:url, og:image). Set SITE_URL in
-// production (e.g. https://laughtermaster.example).
-const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
+// Absolute URLs for share previews (og:url, og:image). SITE_URL wins (e.g. a
+// custom domain); on Vercel it falls back to the production domain that
+// Vercel provides.
+const siteUrl =
+  process.env.SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

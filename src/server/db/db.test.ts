@@ -7,7 +7,12 @@ import { join } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { createDb, openDb, type Db } from "./client";
+import {
+  createDb,
+  hostedDatabaseUrl,
+  openDb,
+  type PgliteDb as Db,
+} from "./client";
 import { DatabaseDamagedError, DatabaseLockedError } from "./errors";
 import { lockFileFor } from "./lock";
 import { runMigrations } from "./migrate";
@@ -110,5 +115,15 @@ describe("database", () => {
       );
       expect(existsSync(lockFileFor(dataDir))).toBe(false);
     });
+  });
+});
+
+describe("hostedDatabaseUrl", () => {
+  it("uses hosted Postgres only when DATABASE_URL is set", () => {
+    expect(hostedDatabaseUrl({})).toBeUndefined();
+    expect(hostedDatabaseUrl({ DATABASE_URL: "" })).toBeUndefined();
+    expect(
+      hostedDatabaseUrl({ DATABASE_URL: "postgresql://u:p@host/db" }),
+    ).toBe("postgresql://u:p@host/db");
   });
 });

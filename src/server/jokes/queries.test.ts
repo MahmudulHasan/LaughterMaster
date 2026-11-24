@@ -2,7 +2,7 @@
 import { eq, sql, type SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { createDb, type Db } from "../db/client";
+import { createDb, type PgliteDb as Db } from "../db/client";
 import { runMigrations } from "../db/migrate";
 import { jokes, users } from "../db/schema";
 import { encodeCursor } from "./cursor";

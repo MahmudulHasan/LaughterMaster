@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { ProviderProfile } from "./auth/types";
-import { createDb, type Db } from "./db/client";
+import { createDb, type PgliteDb as Db } from "./db/client";
 import { runMigrations } from "./db/migrate";
 import { users } from "./db/schema";
 import {

@@ -1,17 +1,26 @@
 import { mkdirSync } from "node:fs";
 
 import { PGlite } from "@electric-sql/pglite";
+import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { drizzle, type PgliteDatabase } from "drizzle-orm/pglite";
 
 import { toOpenError } from "./errors";
 import { acquireDataDirLock, type LockDeps } from "./lock";
+import { openHostedDb } from "./hosted";
 import { registerShutdownHooks } from "./shutdown";
 import * as schema from "./schema";
 
 // TODO: add `import "server-only"` once the package is installed.
 
 export type Schema = typeof schema;
-export type Db = PgliteDatabase<Schema> & { $client: PGlite };
+/**
+ * What app code depends on: a Drizzle Postgres database, whichever driver is
+ * behind it (PGlite locally and in tests, node-postgres on Neon when
+ * DATABASE_URL is set).
+ */
+export type Db = PgDatabase<PgQueryResultHKT, Schema>;
+/** The PGlite-backed database that tests and local scripts open directly. */
+export type PgliteDb = PgliteDatabase<Schema> & { $client: PGlite };
 
 export const DEFAULT_PGLITE_DATA_DIR = "./.data/pglite";
 
@@ -22,6 +31,13 @@ export interface CreateDbOptions {
   dataDir?: string;
   /** Test seam for the single-process lock. */
   lockDeps?: LockDeps;
+}
+
+/** The hosted Postgres URL (Neon on Vercel), or undefined to use PGlite. */
+export function hostedDatabaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string | undefined {
+  return env.DATABASE_URL || undefined;
 }
 
 export function resolveDataDir(dataDir?: string): string {
@@ -40,12 +56,12 @@ export function resolveDataDir(dataDir?: string): string {
  * use `openDb` (or `getReadyDb` in app code) to wait for it and get a clear
  * `DatabaseDamagedError` if the folder can't be opened.
  */
-export function createDb(options: CreateDbOptions = {}): Db {
+export function createDb(options: CreateDbOptions = {}): PgliteDb {
   return createDbWithLock(options).db;
 }
 
 interface LockedDb {
-  db: Db;
+  db: PgliteDb;
   /** Remove the lock file synchronously (for the `exit` event). */
   releaseLock: () => void;
 }
@@ -84,7 +100,7 @@ function createDbWithLock(options: CreateDbOptions): LockedDb {
  * `createDb`, then wait until PGlite has started. Startup failures become
  * actionable errors (`DatabaseDamagedError`) instead of a WASM `Aborted()`.
  */
-export async function openDb(options: CreateDbOptions = {}): Promise<Db> {
+export async function openDb(options: CreateDbOptions = {}): Promise<PgliteDb> {
   return (await openDbWithLock(options)).db;
 }
 
@@ -114,12 +130,18 @@ function sharedState(): SharedDbState {
 }
 
 /**
- * The shared client for app code, opened once per process, with shutdown
- * hooks that close it on SIGINT/SIGTERM/beforeExit. If opening fails, the
- * next call tries again.
+ * The shared client for app code, opened once per process. With
+ * DATABASE_URL set it is a connection pool to hosted Postgres; otherwise the
+ * local PGlite folder, with shutdown hooks that close it on
+ * SIGINT/SIGTERM/beforeExit. If opening fails, the next call tries again.
  */
 export function getSharedDb(): Promise<Db> {
   const state = sharedState();
+  const url = hostedDatabaseUrl();
+  if (url) {
+    state.db ??= Promise.resolve(openHostedDb(url));
+    return state.db;
+  }
   state.db ??= openDbWithLock({}).then(
     ({ db, releaseLock }) => {
       state.unregisterShutdown = registerShutdownHooks({

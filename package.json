@@ -15,7 +15,9 @@
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run test",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx scripts/seed-dev.ts",
-    "moderate:pending": "tsx --env-file-if-exists=.env.local scripts/moderate-pending.ts"
+    "moderate:pending": "tsx --env-file-if-exists=.env.local scripts/moderate-pending.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
+    "vercel-build": "npm run db:migrate && next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.13.0",
@@ -23,6 +25,7 @@
     "drizzle-orm": "^0.45.4",
     "next": "16.4.6",
     "next-auth": "5.0.0-beta.32",
+    "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.7"
@@ -34,6 +37,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.13",
     "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.3.0",
