@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, open, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -11,6 +11,13 @@ import { createDb, openDb, type Db } from "./client";
 import { DatabaseDamagedError, DatabaseLockedError } from "./errors";
 import { lockFileFor } from "./lock";
 import { runMigrations } from "./migrate";
+
+// Every migration drizzle-kit generated, so adding one never breaks this test.
+const MIGRATION_COUNT = (
+  JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as {
+    entries: unknown[];
+  }
+).entries.length;
 
 describe("database", () => {
   let db: Db | undefined;
@@ -27,7 +34,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 4 }]);
+    expect(rows.rows).toEqual([{ count: MIGRATION_COUNT }]);
   });
 
   it("is idempotent when migrations run twice", async () => {
@@ -38,7 +45,7 @@ describe("database", () => {
     const rows = await db.execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(rows.rows).toEqual([{ count: 4 }]);
+    expect(rows.rows).toEqual([{ count: MIGRATION_COUNT }]);
   });
 
   // Regression: PGlite only creates the last folder, so a fresh clone without
