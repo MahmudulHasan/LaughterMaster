@@ -145,6 +145,31 @@ describe("SiteHeader", () => {
       );
     });
 
+    it("puts My jokes and Sign out in the account menu, Admin only for admins", async () => {
+      mockAuth.mockResolvedValue({ user: leakyUser, expires: "" });
+      const banner = await renderHeader();
+      const menu = within(banner)
+        .getByLabelText("Account menu for Mina Park")
+        .closest("details")!;
+      expect(
+        within(menu).getByRole("link", { name: "My jokes" }),
+      ).toHaveAttribute("href", "/me");
+      expect(
+        within(menu).getByRole("button", { name: "Sign out" }),
+      ).toBeInTheDocument();
+      expect(within(banner).queryByRole("link", { name: "Admin" })).toBeNull();
+    });
+
+    it("shows the Admin link to admins", async () => {
+      vi.stubEnv("ADMIN_USER_IDS", "u1");
+      mockAuth.mockResolvedValue({ user: leakyUser, expires: "" });
+      const banner = await renderHeader();
+      expect(
+        within(banner).getByRole("link", { name: "Admin" }),
+      ).toHaveAttribute("href", "/admin");
+      vi.unstubAllEnvs();
+    });
+
     it("shows the profile photo when there is one", async () => {
       mockAuth.mockResolvedValue({
         user: { ...leakyUser, image: "https://example.com/a.png" },

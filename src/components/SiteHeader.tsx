@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { isAdmin } from "@/server/auth/admin";
 import { getSignInOptions } from "@/server/auth/providers";
 
-import { primaryButton, quietButton, secondaryButton } from "./buttonStyles";
+import { primaryButton, secondaryButton } from "./buttonStyles";
 import { SignInButton } from "./SignInButton";
 import { SignInNotice } from "./SignInNotice";
 import { SiteHeaderShell } from "./SiteHeaderShell";
@@ -27,20 +27,16 @@ export async function SiteHeader() {
   if (user) {
     return (
       <SiteHeaderShell
-        actions={
-          <>
-            {isAdmin(user.id) && (
-              <Link href="/admin" className={quietButton}>
-                Admin
-              </Link>
-            )}
-            <Link href="/post" className={primaryButton}>
-              Post a joke
-            </Link>
-            <UserMenu
-              user={{ id: user.id, name: user.name, image: user.image }}
-            />
-          </>
+        post={
+          <Link href="/post" className={primaryButton}>
+            Post a joke
+          </Link>
+        }
+        account={
+          <UserMenu
+            user={{ id: user.id, name: user.name, image: user.image }}
+            isAdmin={isAdmin(user.id)}
+          />
         }
       />
     );
@@ -51,23 +47,23 @@ export async function SiteHeader() {
   return (
     <>
       <SiteHeaderShell
-        actions={
-          <>
-            <SignInButton
-              action="post"
-              options={options}
-              className={primaryButton}
-            >
-              Post a joke
-            </SignInButton>
-            <SignInButton
-              action="signin"
-              options={options}
-              className={secondaryButton}
-            >
-              Sign in
-            </SignInButton>
-          </>
+        post={
+          <SignInButton
+            action="post"
+            options={options}
+            className={primaryButton}
+          >
+            Post a joke
+          </SignInButton>
+        }
+        account={
+          <SignInButton
+            action="signin"
+            options={options}
+            className={secondaryButton}
+          >
+            Sign in
+          </SignInButton>
         }
       />
       <SignInNotice />
