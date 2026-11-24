@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.10** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.11** · 2026-11-22 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -172,6 +172,7 @@ As an admin, I want to review hidden and pending jokes, so that I can make the f
 As anyone, I want shared links to look good on social media, so that friends click them.
 - Every joke page has Open Graph and Twitter Card tags, plus a generated **1200×630 image** showing the joke text, the author's name, and the LaughterMaster brand. Long jokes are truncated with "…".
 - A "Share" button opens the device's share sheet where available, and otherwise copies the link and shows a "Link copied" confirmation.
+- Jokes written in a script the card can't render (Bangla, Hindi, Korean, Arabic, and others) get a branded card saying "Open the link to read this joke", rather than garbled text. _(D18)_
 
 ## 5. Non-functional requirements
 
@@ -229,9 +230,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D15 | When the Google OAuth client is created | Deferred to M9. Until then, development uses a dev-only test sign-in and tests mock OAuth. The real Google flow is first exercised in M9. | Author |
 | D16 | 404 status for unavailable jokes and profiles | Soft 404 for now: the friendly page is shown with status 200 and `noindex`, because `cacheComponents` sends the status before the session-dependent check runs. A real 404 would need a proxy doing an auth + DB lookup on every request; revisit in M9. Verified 2026-11-23: Next emits `<meta name="robots" content="noindex">`, but in the streamed body rather than `<head>`. | Lead (engineering) |
 | D17 | Moderation without an API key | In local development with no Anthropic credentials, moderation is skipped and jokes are approved (recorded as `skipped`), so the app is usable before a key exists. Production never skips: without credentials new jokes stay pending. The moderation model is configurable (`MODERATION_MODEL`, default `claude-opus-5-5`). | Lead (engineering) |
+| D18 | Share cards for non-Latin jokes | The image renderer (`next/og`) can't shape complex scripts such as Bengali, and bundling CJK fonts is heavy. So the card shows the joke text only for Latin-script jokes (accents and emoji are fine); others get a branded card with the author's name. The joke page itself shows every script normally. | Lead (engineering) |
 
 ## Changelog
 
+- **1.11** (2026-11-25): Added D18 (generic share card for non-Latin jokes); US-17 notes it. Affects M7.
 - **1.10** (2026-11-25): M6 details: names accept any script, the form is on `/me`, chosen names survive sign-in, and rename fails closed. Only published jokes can be reported. Restore clears reports. Admins can't be banned. Affects M6.
 - **1.9** (2026-11-24): US-16 gains "admins can delete any joke from its page", delivered early at the author's request. The Claude moderation eval was dropped by the author. Affects M5, M6.
 - **1.8** (2026-11-24): Added D17 (moderation is skipped only in local development without an API key; model configurable). Cost NFR updated: one low-effort call per joke, model choice left to the author. Display-name moderation moves to M6 with US-3. Affects M5, M6, M9.

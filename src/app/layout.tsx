@@ -6,7 +6,12 @@ import { SiteHeaderShell } from "@/components/SiteHeaderShell";
 
 import "./globals.css";
 
+// Absolute URLs for share previews (og:url, og:image). Set SITE_URL in
+// production (e.g. https://laughtermaster.example).
+const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "LaughterMaster",
   description: "Post jokes, vote, and see the top 10 of the day.",
 };

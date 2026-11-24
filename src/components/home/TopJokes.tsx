@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { auth } from "@/auth";
 import { JokeCard } from "@/components/jokes/JokeCard";
 import { PostJokeButton } from "@/components/jokes/PostJokeButton";
+import { ShareButton } from "@/components/share/ShareButton";
 import { VoteButtons, type Voter } from "@/components/votes/VoteButtons";
 import { getSignInOptions } from "@/server/auth/providers";
 import type { SignInOptions } from "@/server/auth/types";
@@ -43,12 +44,15 @@ function RankedList({
               <JokeCard
                 joke={joke}
                 actions={
-                  <VoteButtons
-                    jokeId={joke.id}
-                    myVote={joke.myVote}
-                    voter={voter}
-                    signInOptions={signInOptions}
-                  />
+                  <>
+                    <VoteButtons
+                      jokeId={joke.id}
+                      myVote={joke.myVote}
+                      voter={voter}
+                      signInOptions={signInOptions}
+                    />
+                    <ShareButton jokeId={joke.id} text={joke.text} />
+                  </>
                 }
               />
             </div>

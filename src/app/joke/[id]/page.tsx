@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { JokePageContent } from "@/components/joke/JokePageContent";
 import { jokeTitle } from "@/components/joke/jokeTitle";
+import { cardText } from "@/components/share/cardText";
 import { getReadyDb } from "@/server/db/ready";
 import { getJokeForViewer } from "@/server/jokes/queries";
 
@@ -22,7 +23,28 @@ export async function generateMetadata({
   await connection();
   const { id } = await params;
   const joke = await getJokeForViewer(await getReadyDb(), id, null);
-  return { title: jokeTitle(joke?.text ?? null) };
+  const title = jokeTitle(joke?.text ?? null);
+  if (!joke) return { title };
+  // Share previews (US-17). The image comes from opengraph-image.tsx, which
+  // Next links as og:image; X/Twitter use it via summary_large_image.
+  const description = cardText(joke.text, 160);
+  const byline = `A joke by ${joke.author.displayName} on LaughterMaster`;
+  return {
+    title,
+    description: byline,
+    openGraph: {
+      type: "article",
+      siteName: "LaughterMaster",
+      title: description,
+      description: byline,
+      url: `/joke/${encodeURIComponent(joke.id)}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: description,
+      description: byline,
+    },
+  };
 }
 
 export default function JokePage({

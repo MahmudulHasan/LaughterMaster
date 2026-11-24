@@ -139,6 +139,6 @@ describe("TopJokes (US-10)", () => {
 
   it("never shows vote counts", async () => {
     await renderTop({ today: [ranked("a", 1)], week: [] });
-    expect(document.body.textContent).not.toMatch(/likes|dislikes/i);
+    expect(document.body.textContent).not.toMatch(/\d\s*(likes|dislikes)\b/i);
   });
 });

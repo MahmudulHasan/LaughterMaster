@@ -9,6 +9,8 @@ import { VoteButtons, type Voter } from "@/components/votes/VoteButtons";
 import type { SignInOptions } from "@/server/auth/types";
 import type { JokeView } from "@/server/jokes/types";
 
+import { ShareButton } from "@/components/share/ShareButton";
+
 import { DeleteJokeButton } from "./DeleteJokeButton";
 import { ReportButton } from "./ReportButton";
 
@@ -73,8 +75,10 @@ export function JokeDetail({
           <span className="text-sm text-black/60">
             <RelativeTime iso={joke.createdAt} prefix="Posted " />
           </span>
-          {/* M7 (US-17): share controls go here. */}
           <div data-slot="joke-actions" className="ml-auto flex gap-2">
+            {joke.status === "approved" && (
+              <ShareButton jokeId={joke.id} text={joke.text} />
+            )}
             {isAuthor ? (
               <DeleteJokeButton jokeId={joke.id} />
             ) : (

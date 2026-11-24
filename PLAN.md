@@ -15,7 +15,7 @@
 | M4 Voting & top 10 | US-8, US-9, US-10 | Done |
 | M5 Claude moderation | US-11, US-12, US-13 | Done |
 | M6 Reports & admin | US-15, US-16, US-3 | Done |
-| M7 Sharing | US-17 | Not started |
+| M7 Sharing | US-17 | Done (live preview check in M9) |
 | M8 AI joke of the day | US-14 | Not started |
 | M9 Ship | NFRs | Not started |
 
@@ -118,9 +118,9 @@
 
 ## M7: Sharing (US-17)
 **Course practice:** verifying in a real browser, not just in tests.
-- [ ] OG/Twitter meta tags on joke pages
-- [ ] `next/og` 1200×630 image with truncation for long jokes
-- [ ] Share button: device share sheet, or copy link with a confirmation
+- [x] OG/Twitter meta tags on joke pages (`summary_large_image`; `metadataBase` from `SITE_URL`)
+- [x] `next/og` 1200×630 image (`/joke/[id]/opengraph-image`) with truncation for long jokes; jokes in non-Latin scripts get a generic card (D18)
+- [x] Share button on the joke page, lists and home: device share sheet, or copy link with a "Link copied" confirmation
 - [ ] Manual check with a link-preview debugger once deployed (done in M9)
 
 **Exit:** US-17 passes locally.
@@ -145,7 +145,7 @@
 - [ ] Consider caching the home page ranking for up to 60s (US-10 allows it)
 - [ ] Schedule `moderate:pending` (e.g. Vercel cron) and set `ANTHROPIC_API_KEY` in production
 - [ ] Make the 10-posts-per-day check atomic with the insert (fine on single-connection PGlite, racy on hosted Postgres)
-- [ ] Verify preview cards on real social platforms
+- [ ] Verify preview cards on real social platforms (set `SITE_URL` in production)
 - [ ] README with setup, architecture, and a course retrospective
 
 **Exit:** deployed, all Must stories pass, review findings resolved.

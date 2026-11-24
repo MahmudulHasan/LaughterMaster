@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { primaryButton, secondaryButton } from "@/components/buttonStyles";
+import { ShareButton } from "@/components/share/ShareButton";
 import { VoteButtons, type Voter } from "@/components/votes/VoteButtons";
 import type { SignInOptions } from "@/server/auth/types";
 import type { JokePage, JokeView, VoteValue } from "@/server/jokes/types";
@@ -488,19 +489,22 @@ export function LazyJokeList({
               joke={joke}
               actions={
                 votes && joke.status === "approved" ? (
-                  <VoteButtons
-                    jokeId={joke.id}
-                    myVote={joke.myVote}
-                    voter={voterFor(joke, votes.viewerId)}
-                    signInOptions={votes.signInOptions}
-                    onVote={(myVote: VoteValue | null) =>
-                      setJokes((list) =>
-                        list.map((j) =>
-                          j.id === joke.id ? { ...j, myVote } : j,
-                        ),
-                      )
-                    }
-                  />
+                  <>
+                    <VoteButtons
+                      jokeId={joke.id}
+                      myVote={joke.myVote}
+                      voter={voterFor(joke, votes.viewerId)}
+                      signInOptions={votes.signInOptions}
+                      onVote={(myVote: VoteValue | null) =>
+                        setJokes((list) =>
+                          list.map((j) =>
+                            j.id === joke.id ? { ...j, myVote } : j,
+                          ),
+                        )
+                      }
+                    />
+                    <ShareButton jokeId={joke.id} text={joke.text} />
+                  </>
                 ) : undefined
               }
             />

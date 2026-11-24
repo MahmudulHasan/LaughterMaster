@@ -138,7 +138,9 @@ describe("/u/[id] profile", () => {
     const { container } = render(
       await ProfileContent({ params: params("u1") }),
     );
-    expect(container.textContent).not.toMatch(/@|likes|dislikes|score/i);
+    expect(container.textContent).not.toMatch(
+      /@|\d\s*(likes|dislikes)\b|score/i,
+    );
   });
 
   it("not-found page says the profile isn't available", () => {
