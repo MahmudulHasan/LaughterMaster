@@ -100,6 +100,7 @@
 - [ ] Display names go through the same moderation (moved to M6 with US-3, where names become editable)
 - [x] All tests mock the SDK
 - [x] Development without an API key skips moderation; production fails closed (D17)
+- [x] Admins' own jokes skip moderation and publish at once (SPEC 1.15, D19, 2026-11-27)
 
 **Exit:** US-11 through US-13 pass with a fake moderator in tests.
 

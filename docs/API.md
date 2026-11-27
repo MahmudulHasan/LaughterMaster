@@ -252,7 +252,7 @@ Posting, deleting, reporting, renaming and admin moderation run as **Next.js Ser
 
 | Action | Who | Where in the app | Rules |
 |---|---|---|---|
-| Post a joke | Members | `/post` | 10–500 characters; 10 posts per rolling 24 hours (deleted jokes still count). New jokes are checked by Claude: approved with a category, rejected with a reason, or rejected as a duplicate of an existing joke. If moderation is unavailable, the joke waits as `pending`. |
+| Post a joke | Members | `/post` | 10–500 characters; 10 posts per rolling 24 hours (deleted jokes still count). Members' jokes are checked by Claude: approved with a category, rejected with a reason, or rejected as a duplicate of an existing joke. If moderation is unavailable, the joke waits as `pending`. Admins' jokes publish immediately without moderation (no category). |
 | Delete a joke | The author; admins for any joke | Joke page | Soft delete: it disappears everywhere. |
 | Report a joke | Members (not on their own jokes) | Joke page | One report per member per joke, 20 reports per member per day. 5 reports hide a joke until an admin reviews it. Reasons: Offensive, Spam, Plagiarized, Other. |
 | Change display name | Members | `/me` | Checked by Claude like a joke; if moderation is unavailable, the old name stays. |
@@ -271,4 +271,5 @@ Posting, deleting, reporting, renaming and admin moderation run as **Next.js Ser
 
 ## Changelog
 
+- **2026-11-27:** Admins' own jokes publish immediately without moderation.
 - **2026-11-25:** First version of this document. Covers `GET /api/jokes`, `GET /api/users/{userId}/jokes`, `POST /api/jokes/{jokeId}/vote`, the share card image, and the Auth.js endpoints.

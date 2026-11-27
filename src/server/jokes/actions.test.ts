@@ -27,7 +27,13 @@ vi.mock("@/server/auth/admin", () => ({ isAdmin }));
 const moderatePendingJoke = vi.fn<
   (...args: unknown[]) => Promise<ModerationResult>
 >(async () => ({ status: "approved" }));
-vi.mock("@/server/moderation/pipeline", () => ({ moderatePendingJoke }));
+const publishWithoutModeration = vi.fn<
+  (...args: unknown[]) => Promise<ModerationResult>
+>(async () => ({ status: "approved" }));
+vi.mock("@/server/moderation/pipeline", () => ({
+  moderatePendingJoke,
+  publishWithoutModeration,
+}));
 vi.mock("@/server/moderation/shared", () => ({ getModerator: () => "mod" }));
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
@@ -74,6 +80,8 @@ beforeEach(() => {
   countRecentPosts.mockReset();
   moderatePendingJoke.mockReset();
   moderatePendingJoke.mockResolvedValue({ status: "approved" });
+  publishWithoutModeration.mockReset();
+  publishWithoutModeration.mockResolvedValue({ status: "approved" });
   auth.mockResolvedValue(session);
 });
 
@@ -112,6 +120,25 @@ describe("createJokeAction", () => {
       error: "too_long",
     });
     expect(createJoke).not.toHaveBeenCalled();
+  });
+
+  it("publishes an admin's joke at once, without asking Claude", async () => {
+    isAdmin.mockImplementation((id) => id === "u1");
+    createJoke.mockResolvedValue({ ok: true, joke });
+    await expect(
+      createJokeAction(null, form({ text: "An admin joke, straight out" })),
+    ).rejects.toMatchObject({ url: "/joke/j-1" });
+    expect(publishWithoutModeration).toHaveBeenCalledWith(db, "j-1");
+    expect(moderatePendingJoke).not.toHaveBeenCalled();
+  });
+
+  it("sends a member's joke to moderation, never straight out", async () => {
+    createJoke.mockResolvedValue({ ok: true, joke });
+    await expect(
+      createJokeAction(null, form({ text: "A member joke, please check" })),
+    ).rejects.toMatchObject({ url: "/joke/j-1" });
+    expect(moderatePendingJoke).toHaveBeenCalledWith(db, "j-1", "mod");
+    expect(publishWithoutModeration).not.toHaveBeenCalled();
   });
 
   it("counts graphemes, so 500 emoji are allowed", async () => {

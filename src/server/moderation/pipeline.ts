@@ -171,6 +171,32 @@ export async function moderatePendingJoke(
  * ones that already failed `MAX_MODERATION_ATTEMPTS` times. Returns how
  * many ended in each state.
  */
+/**
+ * Publish an admin's own joke without asking Claude (author decision, SPEC
+ * D19): admins are trusted. The audit fields record that moderation was
+ * skipped and why ("admin"); there is no category or duplicate check.
+ * Only a joke that is still pending is changed.
+ */
+export async function publishWithoutModeration(
+  db: Db,
+  jokeId: string,
+  now: Date = new Date(),
+): Promise<ModerationResult> {
+  const published = await db
+    .update(jokes)
+    .set({
+      status: "approved",
+      moderationDecision: "skipped",
+      moderationReason: null,
+      moderationModel: "admin",
+      moderatedAt: now,
+      updatedAt: now,
+    })
+    .where(and(eq(jokes.id, jokeId), eq(jokes.status, "pending")))
+    .returning({ id: jokes.id });
+  return published.length ? { status: "approved" } : { status: "skipped" };
+}
+
 export async function moderatePendingJokes(
   db: Db,
   moderator: Moderator,

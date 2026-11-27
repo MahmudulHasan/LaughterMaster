@@ -8,7 +8,10 @@ import { auth } from "@/auth";
 import { isAdmin } from "@/server/auth/admin";
 import { getReadyDb } from "@/server/db/ready";
 import { getModerator } from "@/server/moderation/shared";
-import { moderatePendingJoke } from "@/server/moderation/pipeline";
+import {
+  moderatePendingJoke,
+  publishWithoutModeration,
+} from "@/server/moderation/pipeline";
 import {
   countRecentPosts,
   createJoke,
@@ -83,13 +86,13 @@ export async function createJokeAction(
     return state;
   }
 
-  // Moderate before anyone else can see it (US-11). If Claude is
-  // unavailable the joke stays pending and its page says it's under review.
-  const moderation = await moderatePendingJoke(
-    db,
-    result.joke.id,
-    getModerator(),
-  );
+  // Admins are trusted: their jokes publish at once, unchecked (SPEC D19).
+  // Everyone else's are moderated before anyone else can see them (US-11);
+  // if Claude is unavailable the joke stays pending and its page says it's
+  // under review. Admin rights come from the server config only.
+  const moderation = isAdmin(userId)
+    ? await publishWithoutModeration(db, result.joke.id)
+    : await moderatePendingJoke(db, result.joke.id, getModerator());
   if (moderation.status === "rejected") {
     return moderation.duplicateOf
       ? { error: "duplicate", duplicateOf: moderation.duplicateOf }

@@ -17,6 +17,7 @@ import {
   findDuplicateCandidates,
   moderatePendingJoke,
   moderatePendingJokes,
+  publishWithoutModeration,
   similarity,
   trigrams,
 } from "./pipeline";
@@ -211,6 +212,30 @@ describe("moderatePendingJoke", () => {
       status: "skipped",
     });
     expect(moderateJoke).not.toHaveBeenCalled();
+    expect((await row("d1")).status).toBe("deleted");
+  });
+});
+
+describe("publishWithoutModeration (admin posts)", () => {
+  it("publishes a pending joke and records that moderation was skipped", async () => {
+    await addJoke("a1", "An admin's own joke here", "pending");
+    expect(await publishWithoutModeration(db, "a1", NOW)).toEqual({
+      status: "approved",
+    });
+    expect(await row("a1")).toMatchObject({
+      status: "approved",
+      category: null,
+      moderationDecision: "skipped",
+      moderationModel: "admin",
+      moderatedAt: NOW,
+    });
+  });
+
+  it("leaves jokes that aren't pending alone", async () => {
+    await addJoke("d1", "A deleted joke here", "deleted");
+    expect(await publishWithoutModeration(db, "d1", NOW)).toEqual({
+      status: "skipped",
+    });
     expect((await row("d1")).status).toBe("deleted");
   });
 });

@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.14** · 2026-11-24 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.15** · 2026-11-27 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -125,7 +125,7 @@ As anyone, I want the home page to show the 10 best jokes from the last 24 hours
 
 **US-11 · AI moderation on submit · M**
 As the community, I want harmful content blocked before it's public, so that the site stays welcoming.
-- Every submitted joke (and every display name, per US-3) is sent to Claude **before it becomes visible**. Moderation must work for jokes in **any language** (D7); the rejection reason is shown in English.
+- Every joke submitted by a member (and every display name, per US-3) is sent to Claude **before it becomes visible**. **Exception:** jokes posted by an admin publish immediately without moderation _(D19)_. Moderation must work for jokes in **any language** (D7); the rejection reason is shown in English.
 - **Blocked categories:** hate or harassment targeting protected groups or real private people, sexual content, graphic violence, self-harm encouragement, spam, ads, and links.
 - When a joke is **rejected**, the author sees a short, non-judgmental reason ("This looks like it targets a group of people"), and the joke isn't saved publicly.
 - If Claude is **unavailable** or times out (after 10 seconds), the joke is saved as **pending** and the author is told "We're checking your joke. It'll appear shortly." A retry job screens pending jokes. **Pending jokes are never public (fail closed).**
@@ -173,7 +173,7 @@ As anyone, I want shared links to look good on social media, so that friends cli
 
 | Area | Requirement |
 |------|-------------|
-| Safety | Public content must pass moderation (US-11), and moderation fails closed. |
+| Safety | Public content must pass moderation (US-11), and moderation fails closed. Admins' own jokes are the one exception (D19). |
 | Abuse | Rate limits: 10 posts per member per 24h, 300 votes per member per hour, 20 reports per member per day. |
 | Privacy | Only the display name and avatar are public. Emails are never exposed. |
 | Secrets | `ANTHROPIC_API_KEY` and the OAuth secrets live only in `.env.local` (and the host's secret store). They're never committed and never sent to the browser. |
@@ -226,9 +226,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D16 | 404 status for unavailable jokes and profiles | Soft 404 for now: the friendly page is shown with status 200 and `noindex`, because `cacheComponents` sends the status before the session-dependent check runs. A real 404 would need a proxy doing an auth + DB lookup on every request; revisit in M9. Verified 2026-11-23: Next emits `<meta name="robots" content="noindex">`, but in the streamed body rather than `<head>`. | Lead (engineering) |
 | D17 | Moderation without an API key | In local development with no Anthropic credentials, moderation is skipped and jokes are approved (recorded as `skipped`), so the app is usable before a key exists. Production never skips: without credentials new jokes stay pending. The moderation model is configurable (`MODERATION_MODEL`, default `claude-opus-5-5`). | Lead (engineering) |
 | D18 | Share cards for non-Latin jokes | The image renderer (`next/og`) can't shape complex scripts. Latin jokes use it directly. **Bangla** jokes (and Bangla author names) are shaped with HarfBuzz using Noto Sans Bengali (plus Noto Sans for English, digits and punctuation) and drawn as outlines, so they read correctly; emoji in them are left out. Other scripts still get a branded card with the author's name; each could be added the same way with its own font. The joke page itself shows every script normally. | Lead (engineering), Bangla support at the author's request |
+| D19 | Admins' own jokes | Jokes posted by an admin (`ADMIN_USER_IDS`) publish immediately and are never sent to Claude: no moderation, no category, no duplicate check. The joke records `moderation_decision = skipped`, `moderation_model = admin` for auditing. Members' jokes are moderated as in US-11. Display names still go through moderation for everyone. | Author |
 
 ## Changelog
 
+- **1.15** (2026-11-27): Added D19: admins' own jokes skip moderation and publish at once (author decision). US-11 and the Safety NFR note the exception. Affects M5.
 - **1.14** (2026-11-24): D18 and US-17: Bangla jokes and author names now appear on the share card, shaped with HarfBuzz; other non-Latin scripts keep the generic card. The card shows the whole joke, shrinking the type for long ones, instead of cutting at 180 characters. Author requests. Affects M7.
 - **1.13** (2026-11-24): US-17: Share opens a menu with Facebook, WhatsApp, X and Copy link on every device, plus the device share sheet where available. The share sheet alone had no Facebook option on computers. Author request. Affects M7.
 - **1.12** (2026-11-25): Dropped US-14 (AI joke of the day) at the author's request; removed the JokeBot role and its mentions; D6 is moot. M8 is dropped.
