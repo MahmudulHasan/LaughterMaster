@@ -133,6 +133,7 @@ Dropped by the author on 2026-11-25 (SPEC v1.12). Nothing was built.
 
 ## M9: Ship
 **Course practice:** release readiness, security review, deployment.
+- [x] "Joke from the web" box on the home page from icanhazdadjoke.com, cached ~15 min, hidden when the source fails (US-19, D20, SPEC 1.16, 2026-11-27)
 - [ ] Playwright smoke test: sign in (mocked) → post → vote → appears in the top 10 → share link
 - [ ] Accessibility pass (keyboard + axe) and performance check against the NFRs
 - [ ] `/security-review` and `review-against-spec` on the whole app

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { TopJokes } from "@/components/home/TopJokes";
+import { WebJoke } from "@/components/home/WebJoke";
 import { JokeListSkeleton } from "@/components/jokes/JokeListSkeleton";
 
 export default function Home() {
@@ -24,22 +25,28 @@ export default function Home() {
           </Link>
         </p>
       </div>
-      <aside className="flex-[1_1_260px] rounded-2xl border border-[#E3E5EA] bg-white p-6">
-        <h2 className="text-base font-semibold">How the top 10 works</h2>
-        <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed text-[#3D414B]">
-          <li>Only jokes posted in the last 24 hours compete.</li>
-          <li>
-            Score is likes minus dislikes. Ties go to the joke with more votes,
-            then the earlier post.
-          </li>
-          <li>
-            Vote counts stay private, so the ranking can&apos;t be gamed by
-            bandwagons.
-          </li>
-          <li>
-            On a quiet day, the list is topped up with this week&apos;s best.
-          </li>
-        </ul>
+      <aside className="flex flex-[1_1_260px] flex-col gap-6">
+        <section className="rounded-2xl border border-[#E3E5EA] bg-white p-6">
+          <h2 className="text-base font-semibold">How the top 10 works</h2>
+          <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed text-[#3D414B]">
+            <li>Only jokes posted in the last 24 hours compete.</li>
+            <li>
+              Score is likes minus dislikes. Ties go to the joke with more
+              votes, then the earlier post.
+            </li>
+            <li>
+              Vote counts stay private, so the ranking can&apos;t be gamed by
+              bandwagons.
+            </li>
+            <li>
+              On a quiet day, the list is topped up with this week&apos;s best.
+            </li>
+          </ul>
+        </section>
+        {/* Cached on the server; if the source is down the box is left out. */}
+        <Suspense fallback={null}>
+          <WebJoke />
+        </Suspense>
       </aside>
     </main>
   );

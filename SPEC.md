@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.15** · 2026-11-27 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.16** · 2026-11-27 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -169,6 +169,13 @@ As anyone, I want shared links to look good on social media, so that friends cli
 - A "Share" button opens a menu with **Share on Facebook**, **Share on WhatsApp**, **Share on X** and **Copy link** on every device (Facebook gets the joke page URL and builds the preview from its tags; WhatsApp and X also carry the joke text, shortened to 200 characters). Copy link shows a "Link copied" confirmation. Where the browser has a device share sheet, the menu also offers **More options…** to open it. The menu closes on Escape (focus returns to Share) or an outside click.
 - Bangla jokes show their text on the card too, correctly shaped (conjuncts, vowel signs), mixed with English where the joke mixes them; a Bangla author name shows in the byline. Emoji in Bangla jokes are left out of the card. Jokes in scripts the card has no font for (Hindi, Korean, Arabic, and others) get a branded card saying "Open the link to read this joke", rather than garbled text. _(D18)_
 
+**US-19 · Joke from the web · C**
+As a visitor, I want a bonus joke on the home page, so that there's something new to read even on a quiet day.
+- The home page sidebar shows a box titled **"Joke from the web"** with one clean dad joke from [icanhazdadjoke.com](https://icanhazdadjoke.com), credited with a link to that joke, and the note "Not part of the top 10."
+- The joke is fetched on the server and shared by all visitors, refreshed about every **15 minutes**, so the source gets a few requests an hour, not one per visit.
+- If the source is slow (over **3 seconds**), down, or returns something unexpected or longer than **300 characters**, the box is simply left out; the page never waits on it or shows an error.
+- The joke is shown as plain text. It can't be voted on, shared, reported, or posted, and it never appears in the top 10, the All jokes list, or any profile. _(D20)_
+
 ## 5. Non-functional requirements
 
 | Area | Requirement |
@@ -200,7 +207,7 @@ Next.js (App Router) + TypeScript + Tailwind · Auth.js (Google provider only) �
 
 ## 8. Out of scope
 
-Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, editing jokes, translating jokes, a non-English interface, images or memes in jokes, per-platform share buttons, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
+Comments, following or feeds, notifications, usernames/handles, profile bios or custom avatars, searching jokes, editing jokes, translating jokes, a non-English interface, images or memes in jokes, a public leaderboard of users, monetization, mobile apps, and the old Claude joke generator.
 
 ## 9. Decision log
 
@@ -227,9 +234,11 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 | D17 | Moderation without an API key | In local development with no Anthropic credentials, moderation is skipped and jokes are approved (recorded as `skipped`), so the app is usable before a key exists. Production never skips: without credentials new jokes stay pending. The moderation model is configurable (`MODERATION_MODEL`, default `claude-opus-5-5`). | Lead (engineering) |
 | D18 | Share cards for non-Latin jokes | The image renderer (`next/og`) can't shape complex scripts. Latin jokes use it directly. **Bangla** jokes (and Bangla author names) are shaped with HarfBuzz using Noto Sans Bengali (plus Noto Sans for English, digits and punctuation) and drawn as outlines, so they read correctly; emoji in them are left out. Other scripts still get a branded card with the author's name; each could be added the same way with its own font. The joke page itself shows every script normally. | Lead (engineering), Bangla support at the author's request |
 | D19 | Admins' own jokes | Jokes posted by an admin (`ADMIN_USER_IDS`) publish immediately and are never sent to Claude: no moderation, no category, no duplicate check. The joke records `moderation_decision = skipped`, `moderation_model = admin` for auditing. Members' jokes are moderated as in US-11. Display names still go through moderation for everyone. | Author |
+| D20 | Jokes from other sources | Only in the labelled "Joke from the web" box (US-19), from icanhazdadjoke.com (free, no key, clean dad jokes), with credit. They are never copied into LaughterMaster's lists, so the site's own jokes stay community-made ("Post your own jokes"). The source is trusted as family-friendly and isn't moderated by Claude. | Author |
 
 ## Changelog
 
+- **1.16** (2026-11-27): Added US-19 (Could): a "Joke from the web" box on the home page from icanhazdadjoke.com, and D20 (outside jokes stay in that box only). Removed "per-platform share buttons" from Out of scope, since 1.13 added them. Author request. Affects M9.
 - **1.15** (2026-11-27): Added D19: admins' own jokes skip moderation and publish at once (author decision). US-11 and the Safety NFR note the exception. Affects M5.
 - **1.14** (2026-11-24): D18 and US-17: Bangla jokes and author names now appear on the share card, shaped with HarfBuzz; other non-Latin scripts keep the generic card. The card shows the whole joke, shrinking the type for long ones, instead of cutting at 180 characters. Author requests. Affects M7.
 - **1.13** (2026-11-24): US-17: Share opens a menu with Facebook, WhatsApp, X and Copy link on every device, plus the device share sheet where available. The share sheet alone had no Facebook option on computers. Author request. Affects M7.
