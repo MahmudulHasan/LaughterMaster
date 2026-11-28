@@ -9,6 +9,7 @@ import {
   UnavailableModerator,
   buildUserMessage,
   createModerator,
+  isModerationAvailable,
   toVerdict,
 } from "./moderator";
 
@@ -173,5 +174,18 @@ describe("createModerator (D17)", () => {
         UnavailableModerator,
       );
     }
+  });
+});
+
+describe("isModerationAvailable", () => {
+  it("is true with credentials, or in development (which skips the check)", () => {
+    expect(
+      isModerationAvailable({ ANTHROPIC_API_KEY: "k", NODE_ENV: "production" }),
+    ).toBe(true);
+    expect(isModerationAvailable({ NODE_ENV: "development" })).toBe(true);
+  });
+
+  it("is false in production without credentials", () => {
+    expect(isModerationAvailable({ NODE_ENV: "production" })).toBe(false);
   });
 });

@@ -22,6 +22,10 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/me",
   useRouter: () => ({ refresh: vi.fn() }),
 }));
+const { isModerationAvailable } = vi.hoisted(() => ({
+  isModerationAvailable: vi.fn(() => true),
+}));
+vi.mock("@/server/moderation/moderator", () => ({ isModerationAvailable }));
 vi.mock("@/server/profile/actions", () => ({
   updateDisplayNameAction: vi.fn(),
 }));
@@ -44,6 +48,7 @@ const joke: MyJokeStats = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  isModerationAvailable.mockReturnValue(true);
 });
 
 describe("MyJokes (US-9)", () => {
@@ -79,5 +84,26 @@ describe("MyJokes (US-9)", () => {
       "href",
       "/post",
     );
+  });
+});
+
+describe("MyJokes display name form (US-3)", () => {
+  it("offers to change the name when names can be checked", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "mina", name: "Mina Park" } });
+    mockStats.mockResolvedValue([joke]);
+    render(await MyJokes());
+    expect(
+      screen.getByRole("button", { name: "Save name" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the form when moderation is unavailable, since it can't work", async () => {
+    isModerationAvailable.mockReturnValue(false);
+    mockAuth.mockResolvedValue({ user: { id: "mina", name: "Mina Park" } });
+    mockStats.mockResolvedValue([joke]);
+    render(await MyJokes());
+    expect(screen.queryByRole("button", { name: "Save name" })).toBeNull();
+    // The rest of the page still works.
+    expect(screen.getByLabelText("Your private stats")).toBeInTheDocument();
   });
 });

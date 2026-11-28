@@ -11,6 +11,7 @@ import { getSignInOptions } from "@/server/auth/providers";
 import { getReadyDb } from "@/server/db/ready";
 import type { MyJokeStats } from "@/server/jokes/types";
 import { getMyJokeStats } from "@/server/jokes/votes";
+import { isModerationAvailable } from "@/server/moderation/moderator";
 
 function StatsRow({ joke }: { joke: MyJokeStats }) {
   const stats: Array<[string, number]> = [
@@ -61,7 +62,11 @@ export async function MyJokes() {
 
   const db = await getReadyDb();
   const jokes = await getMyJokeStats(db, userId);
-  const nameForm = <DisplayNameForm currentName={session.user.name} />;
+  // Renaming needs Claude to check the new name (US-3, fail closed). Without
+  // moderation it could never succeed, so the form is left out.
+  const nameForm = isModerationAvailable() ? (
+    <DisplayNameForm currentName={session.user.name} />
+  ) : null;
 
   if (jokes.length === 0) {
     return (

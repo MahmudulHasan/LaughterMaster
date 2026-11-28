@@ -301,6 +301,16 @@ export function hasClaudeCredentials(env: Env = process.env): boolean {
 }
 
 /**
+ * Whether anything that needs moderation can succeed here: true with
+ * Claude credentials, or in development (where moderation is skipped).
+ * Without it, features that require a check, like renaming, are hidden
+ * rather than failing (SPEC US-3).
+ */
+export function isModerationAvailable(env: Env = process.env): boolean {
+  return hasClaudeCredentials(env) || env.NODE_ENV === "development";
+}
+
+/**
  * Picks the moderator for this environment (SPEC D17): Claude when
  * credentials exist; in development without them, skip moderation;
  * otherwise fail closed.

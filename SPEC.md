@@ -1,6 +1,6 @@
 # LaughterMaster: Product Spec
 
-> **Version 1.16** · 2026-11-27 · Owner: product owner (Claude, on the author's behalf)
+> **Version 1.17** · 2026-11-28 · Owner: product owner (Claude, on the author's behalf)
 > Derived from [`intent.md`](intent.md). Where this spec and intent.md disagree, intent.md wins until it's updated.
 > All product decisions D1–D14 were reviewed and confirmed by the author on 2026-11-22 (see §9).
 
@@ -51,7 +51,7 @@ As a visitor, I want a clear prompt when I try something that needs an account, 
 
 **US-3 · Display name · S**
 As a member, I want to change my display name, so that I choose how I'm credited.
-- A name must be 2–30 characters. Letters, numbers, spaces, `_`, and `-` are allowed. Claude's moderation applies to names too. Letters from any script count. The name form lives on `/me`. A chosen name is kept on later sign-ins, and the header shows it right away. If Claude can't check the name, the old one stays (fail closed).
+- A name must be 2–30 characters. Letters, numbers, spaces, `_`, and `-` are allowed. Claude's moderation applies to names too. Letters from any script count. The name form lives on `/me`. A chosen name is kept on later sign-ins, and the header shows it right away. If Claude can't check the name, the old one stays (fail closed). When moderation isn't set up at all (no Anthropic credentials in production), the name form is **hidden** rather than offered and always failing; members keep the name from their Google account. It returns automatically once credentials are added.
 
 ### Epic B: Posting jokes
 
@@ -238,6 +238,7 @@ Decisions from intent.md are final unless the author changes them. All PO propos
 
 ## Changelog
 
+- **1.17** (2026-11-28): US-3: the name form is hidden while moderation isn't configured (no key), since renaming can't succeed without it. Author request. Affects M6.
 - **1.16** (2026-11-27): Added US-19 (Could): a "Joke from the web" box on the home page from icanhazdadjoke.com, and D20 (outside jokes stay in that box only). Removed "per-platform share buttons" from Out of scope, since 1.13 added them. Author request. Affects M9.
 - **1.15** (2026-11-27): Added D19: admins' own jokes skip moderation and publish at once (author decision). US-11 and the Safety NFR note the exception. Affects M5.
 - **1.14** (2026-11-24): D18 and US-17: Bangla jokes and author names now appear on the share card, shaped with HarfBuzz; other non-Latin scripts keep the generic card. The card shows the whole joke, shrinking the type for long ones, instead of cutting at 180 characters. Author requests. Affects M7.

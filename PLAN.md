@@ -112,6 +112,7 @@
 - [x] `/admin` queue (404 for non-admins): restore (clears reports), remove, ban (never an admin); Admin link in the header
 - [x] Banned members can't post, vote, or report; their jokes are hidden and their profile returns 404 (US-18)
 - [x] Display name change (US-3) — new names go through Claude moderation (moved from M5)
+- [x] Hide the name form while moderation isn't configured, instead of a form that always fails (SPEC 1.17, 2026-11-28)
 - [x] Owner's profile shows an "Edit name" link to the name form on `/me` (US-18, deferred from M3)
 - [x] Session shows the new name right after a rename (re-read from the database on session update), and later sign-ins keep a chosen name
 
